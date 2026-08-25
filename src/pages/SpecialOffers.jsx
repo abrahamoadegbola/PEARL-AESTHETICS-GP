@@ -1,6 +1,6 @@
 export default function SpecialOffers() {
   return (
-    <>
+    <div className="w-full max-w-container-max mx-auto px-gutter pb-section-padding-mobile md:pb-section-padding-desktop pt-8 md:pt-12">
 
 
 <header className="text-center mb-16 md:mb-24 fade-in-up">
@@ -99,6 +99,6 @@ export default function SpecialOffers() {
 </div>
 
 
-    </>
+    </div>
   );
 }

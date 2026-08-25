@@ -1,6 +1,6 @@
 export default function BookConsultation() {
   return (
-    <>
+    <div className="w-full max-w-container-max mx-auto px-gutter pb-section-padding-desktop pt-8 flex flex-col items-center">
 
 
 <div className="w-full max-w-3xl mb-16 text-center fade-in-up">
@@ -79,6 +79,6 @@ export default function BookConsultation() {
 </div>
 
 
-    </>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 export default function InsightsAdvice() {
   return (
-    <>
+    <div className="max-w-container-max mx-auto w-full px-gutter pb-section-padding-mobile md:pb-section-padding-desktop pt-8 md:pt-12">
 
 
 <header className="mb-16 md:mb-24 text-center md:text-left fade-in-up" style={{animationDelay: "0.1s"}}>
@@ -125,6 +125,6 @@ export default function InsightsAdvice() {
 </div>
 
 
-    </>
+    </div>
   );
 }

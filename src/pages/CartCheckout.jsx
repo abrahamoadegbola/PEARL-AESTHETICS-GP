@@ -1,6 +1,6 @@
 export default function CartCheckout() {
   return (
-    <>
+    <div className="w-full max-w-container-max mx-auto px-gutter pb-section-padding-mobile md:pb-section-padding-desktop pt-8">
 
 
 <div className="mb-12 md:mb-16 fade-in-up">
@@ -153,6 +153,6 @@ export default function CartCheckout() {
 </div>
 
 
-    </>
+    </div>
   );
 }

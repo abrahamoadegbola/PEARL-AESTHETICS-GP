@@ -1,6 +1,6 @@
 export default function ProductDetail() {
   return (
-    <>
+    <div className="max-w-container-max mx-auto px-4 md:px-gutter pb-section-padding-mobile md:pb-section-padding-desktop pt-8">
 
 
 <nav className="mb-8 hidden md:block animate-fade-up" style={{animationDelay: "0.1s"}}>
@@ -154,6 +154,6 @@ export default function ProductDetail() {
 </div>
 
 
-    </>
+    </div>
   );
 }

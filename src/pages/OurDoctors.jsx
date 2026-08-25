@@ -1,6 +1,6 @@
 export default function OurDoctors() {
   return (
-    <>
+    <div className="w-full max-w-container-max mx-auto px-gutter pb-section-padding-mobile md:pb-section-padding-desktop pt-8 md:pt-12">
 
 
 <section className="text-center max-w-3xl mx-auto mb-16 md:mb-24 reveal-on-scroll">
@@ -81,6 +81,6 @@ export default function OurDoctors() {
 </section>
 
 
-    </>
+    </div>
   );
 }

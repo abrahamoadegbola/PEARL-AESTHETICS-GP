@@ -1,6 +1,6 @@
 export default function TreatmentMenu() {
   return (
-    <>
+    <div className="max-w-container-max mx-auto px-gutter pb-section-padding-desktop pt-8">
 
 
 <header className="mb-12 animate-fade-in-up" style={{animationDelay: "0.1s"}}>
@@ -140,6 +140,6 @@ export default function TreatmentMenu() {
 </div>
 
 
-    </>
+    </div>
   );
 }

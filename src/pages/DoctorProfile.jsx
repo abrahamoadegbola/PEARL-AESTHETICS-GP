@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function DoctorProfile() {
   return (
-    <>
+    <div className="w-full max-w-container-max mx-auto px-gutter pb-section-padding-mobile md:pb-section-padding-desktop pt-8 md:pt-12">
 
 
 <nav aria-label="Breadcrumb" className="mb-12">
@@ -142,6 +142,6 @@ export default function DoctorProfile() {
 </div>
 
 
-    </>
+    </div>
   );
 }

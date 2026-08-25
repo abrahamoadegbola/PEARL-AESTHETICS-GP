@@ -1,6 +1,6 @@
 export default function Treatments() {
   return (
-    <>
+    <div className="w-full max-w-container-max mx-auto px-gutter pb-section-padding-desktop pt-8">
 
 
 <section className="py-20 md:py-32 fade-in-up">
@@ -88,6 +88,6 @@ export default function Treatments() {
 </div>
 
 
-    </>
+    </div>
   );
 }
