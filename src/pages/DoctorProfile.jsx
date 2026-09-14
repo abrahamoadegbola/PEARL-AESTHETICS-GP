@@ -1,147 +1,211 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import DOCTORS from "../data/doctors";
+import Breadcrumb from "../components/Breadcrumb";
+import CTABand from "../components/CTABand";
+import Reveal from "../components/motion/Reveal";
+import { useDeclareDarkHero } from "../context/DarkHeroContext";
+
+function Section({ title, children }) {
+  return (
+    <Reveal as="section">
+      <h2 className="font-headline-sm text-headline-sm text-primary mb-7 pb-4 border-b border-outline-variant/40">
+        {title}
+      </h2>
+      {children}
+    </Reveal>
+  );
+}
 
 export default function DoctorProfile() {
+  const { id } = useParams();
+  const doctor = DOCTORS.find((d) => d.id === id) || DOCTORS[0];
+  useDeclareDarkHero();
+
   return (
-    <div className="w-full max-w-container-max mx-auto px-gutter pb-section-padding-mobile md:pb-section-padding-desktop pt-8 md:pt-12">
+    <>
+      {/* The portrait carries the page, so it leads full-bleed rather than
+          sitting in a card below a breadcrumb. */}
+      <section className="relative isolate -mt-[88px] md:-mt-[104px] bg-primary text-on-primary overflow-hidden">
+        <div className="absolute inset-0 -z-10">
+          <img
+            src={doctor.heroImage}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover object-top opacity-30 blur-[2px] scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary via-primary/85 to-primary/60" />
+        </div>
 
+        <div className="max-w-container-max mx-auto px-gutter pt-[112px] pb-16 md:pt-[140px] md:pb-24">
+          <Breadcrumb
+            tone="dark"
+            trail={[
+              { label: "Home", to: "/" },
+              { label: "Our Doctors", to: "/doctors" },
+              { label: doctor.name },
+            ]}
+          />
 
-<nav aria-label="Breadcrumb" className="mb-12">
-<ol className="flex items-center gap-2 font-label-caps text-label-caps text-on-surface-variant">
-<li><a className="hover:text-primary transition-colors" href="#">Home</a></li>
-<li><span className="material-symbols-outlined text-[14px]">chevron_right</span></li>
-<li><a className="hover:text-primary transition-colors" href="#">Our Doctors</a></li>
-<li><span className="material-symbols-outlined text-[14px]">chevron_right</span></li>
-<li aria-current="page" className="text-primary font-semibold">Dr. Elena Rostova</li>
-</ol>
-</nav>
-<div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter lg:gap-16">
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-12 gap-gutter md:gap-16 items-end">
+            <Reveal className="md:col-span-4" as="div">
+              <div className="relative aspect-[3/4] w-full max-w-xs md:max-w-none overflow-hidden rounded-xl shadow-2xl shadow-black/30">
+                <img className="w-full h-full object-cover" alt={doctor.name} src={doctor.heroImage} />
+              </div>
+            </Reveal>
 
-<aside className="lg:col-span-4 flex flex-col gap-8">
+            <div className="md:col-span-8">
+              <Reveal delay={0.08}>
+                <span className="font-label-caps text-label-caps text-secondary-container uppercase tracking-[0.3em] mb-5 flex items-center gap-3">
+                  <span className="w-10 h-px bg-secondary-container/60" />
+                  {doctor.title}
+                </span>
+              </Reveal>
+              <Reveal delay={0.14}>
+                <h1
+                  className="font-display-lg mb-5"
+                  style={{ fontSize: "clamp(2.25rem, 4.5vw, 3.5rem)", lineHeight: 1.08, letterSpacing: "-0.02em" }}
+                >
+                  {doctor.name}
+                </h1>
+              </Reveal>
+              <Reveal delay={0.2}>
+                <p className="font-body-lg text-body-lg text-on-primary/80 mb-9 max-w-xl">{doctor.credentials}</p>
+              </Reveal>
+              <Reveal delay={0.26}>
+                <dl className="flex flex-wrap gap-x-12 gap-y-6 pt-8 border-t border-on-primary/20">
+                  {[
+                    { icon: "workspace_premium", label: "Accreditation", value: doctor.badge },
+                    { icon: "verified", label: "Role", value: doctor.experience },
+                    { icon: "language", label: "Languages", value: doctor.languages },
+                  ].map((fact) => (
+                    <div key={fact.label} className="max-w-xs">
+                      <dt className="font-label-caps text-label-caps text-on-primary/55 uppercase tracking-widest mb-2 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-[16px]">{fact.icon}</span>
+                        {fact.label}
+                      </dt>
+                      <dd className="font-body-md text-body-md">{fact.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </Reveal>
+            </div>
+          </div>
+        </div>
+      </section>
 
-<div className="relative w-full aspect-[3/4] rounded-xl overflow-hidden shadow-2xl shadow-primary/10">
-<img className="w-full h-full object-cover" alt="A professional, high-end editorial portrait of a female aesthetic doctor in her late 30s. She is wearing a pristine, tailored white lab coat over elegant clinical attire. The setting is a bright, minimalist medical spa with soft, diffused natural lighting. The overall color palette is clinical-luxury: whites, muted teals, and soft natural skin tones. She is looking at the camera with a confident, warm, and authoritative expression." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB1mMpEoWTiIOOIRiOztUX90Aztwixm65uFc0mpp3KaBboenYlk3E26PYKi99gqJae1qEDsQie35UsQrAAEWwV68v4Z1JCL36R5-6NgpXW82VgnGcazl2Wh7ssXCgtxD4hn5dTr8R1iDL-_SER0nhPnhSm_DmwjN-MnXmfKVPQclAs6h27iGDu8igjZRl39eHR-1alIta17Mf2CxkUSyZyDibZ2JZnakBfwvgEiOC--uJKMDMWB8uFC" />
+      <div className="max-w-container-max mx-auto px-gutter py-section-padding-mobile md:py-section-padding-desktop">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter lg:gap-20">
+          <article className="lg:col-span-8 flex flex-col gap-16">
+            <Section title="Professional Biography">
+              <div className="font-body-lg text-body-lg text-on-surface-variant space-y-6">
+                {doctor.bio.map((paragraph, i) => (
+                  <p key={i}>{paragraph}</p>
+                ))}
+              </div>
+            </Section>
 
-<div className="absolute inset-0 bg-gradient-to-t from-primary/40 to-transparent"></div>
-</div>
+            <Section title="Areas of Expertise">
+              <div className="flex flex-wrap gap-3">
+                {doctor.expertise.map((item) => (
+                  <span
+                    key={item}
+                    className="bg-surface-container text-primary px-5 py-2.5 rounded-full font-label-caps text-label-caps uppercase tracking-widest"
+                  >
+                    {item}
+                  </span>
+                ))}
+              </div>
+            </Section>
 
-<div className="bg-surface-container-lowest p-8 rounded-xl border border-surface-variant flex flex-col gap-6">
-<div className="text-center">
-<h1 className="font-headline-md text-headline-md text-primary mb-2">Dr. Elena Rostova</h1>
-<p className="font-body-md text-body-md text-on-surface-variant">MD, FAAD</p>
-<p className="font-label-caps text-label-caps text-secondary mt-2 tracking-widest">Lead Aesthetic Dermatologist</p>
-</div>
-<div className="h-px bg-surface-variant w-full"></div>
+            <Section title="Education & Certifications">
+              {doctor.education && doctor.education.length > 0 ? (
+                <div className="relative border-l border-outline-variant/40 ml-1.5 space-y-10">
+                  {doctor.education.map((item, i) => (
+                    <div key={i} className="relative pl-8">
+                      <span
+                        className={`absolute w-3 h-3 rounded-full -left-[6.5px] top-2 border-2 border-background ${
+                          i === 0 ? "bg-secondary-container" : "bg-outline-variant"
+                        }`}
+                      />
+                      <h3 className="font-body-lg text-body-lg text-primary font-medium">{item.title}</h3>
+                      <p className="font-body-md text-body-md text-on-surface-variant mt-1">{item.place}</p>
+                      <p className="font-label-caps text-label-caps text-outline uppercase tracking-widest mt-2">
+                        {item.years}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="font-body-md text-body-md text-on-surface-variant">
+                  {doctor.credentials} — full credential history available on request.
+                </p>
+              )}
+            </Section>
 
-<div className="flex flex-col gap-3">
-<div className="flex items-center gap-3 text-primary">
-<span className="material-symbols-outlined">workspace_premium</span>
-<span className="font-body-md text-body-md">Board Certified Dermatologist</span>
-</div>
-<div className="flex items-center gap-3 text-primary">
-<span className="material-symbols-outlined">verified</span>
-<span className="font-body-md text-body-md">12+ Years Experience</span>
-</div>
-<div className="flex items-center gap-3 text-primary">
-<span className="material-symbols-outlined">language</span>
-<span className="font-body-md text-body-md">English, Arabic, French</span>
-</div>
-</div>
+            <Section title="Patient Experiences">
+              {doctor.testimonials && doctor.testimonials.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+                  {doctor.testimonials.map((t, i) => (
+                    <div
+                      key={i}
+                      className="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/30 transition-colors duration-300 hover:border-primary/25"
+                    >
+                      <div className="flex text-secondary mb-5">
+                        {Array.from({ length: 5 }).map((_, s) => (
+                          <span key={s} className="material-symbols-outlined fill text-lg">
+                            star
+                          </span>
+                        ))}
+                      </div>
+                      <p className="font-body-md text-body-md text-on-surface-variant mb-6">"{t.quote}"</p>
+                      <p className="font-label-caps text-label-caps text-primary uppercase tracking-widest">
+                        — {t.name}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="font-body-md text-body-md text-on-surface-variant">
+                  Patient reviews for {doctor.name} will appear here once published to our verified Google
+                  Business listing.
+                </p>
+              )}
+            </Section>
+          </article>
 
-<Link to="/book-consultation" className="w-full bg-primary text-on-primary font-label-caps text-label-caps px-6 py-4 rounded-full hover:bg-primary-container transition-colors mt-2">Book with Dr. Rostova
-                    </Link>
-</div>
-</aside>
+          <aside className="lg:col-span-4">
+            <Reveal delay={0.1} className="lg:sticky lg:top-32" as="div">
+              <div className="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/30">
+                <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-[0.25em] mb-4 block">
+                  Consultation
+                </span>
+                <h2 className="font-headline-sm text-headline-sm text-primary mb-3">
+                  Book with {doctor.name}
+                </h2>
+                <p className="font-body-md text-body-md text-on-surface-variant mb-8">
+                  Your first consultation is complimentary and unhurried — an honest assessment before anything
+                  is booked in.
+                </p>
+                <Link
+                  to="/book-consultation"
+                  className="w-full inline-flex justify-center items-center bg-secondary-container text-on-secondary-container py-4 rounded font-label-caps text-label-caps uppercase tracking-widest hover:bg-secondary-fixed transition-colors"
+                >
+                  Book Consultation
+                </Link>
+                <Link
+                  to="/doctors"
+                  className="w-full mt-3 inline-flex justify-center items-center gap-2 py-3 font-label-caps text-label-caps text-primary uppercase tracking-widest hover:text-surface-tint transition-colors"
+                >
+                  <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                  All Doctors
+                </Link>
+              </div>
+            </Reveal>
+          </aside>
+        </div>
+      </div>
 
-<article className="lg:col-span-8 flex flex-col gap-16">
-
-<section>
-<h2 className="font-headline-sm text-headline-sm text-primary mb-6 border-b border-surface-variant pb-4">Professional Biography</h2>
-<div className="font-body-lg text-body-lg text-on-surface-variant space-y-6">
-<p>
-                            Dr. Elena Rostova is a globally recognized aesthetic dermatologist dedicated to enhancing natural beauty through advanced, minimally invasive clinical procedures. With over a decade of specialized experience in cosmetic dermatology, she bridges the gap between meticulous medical science and the nuanced artistry of facial balancing.
-                        </p>
-<p>
-                            Educated at top-tier international institutions, Dr. Rostova's approach is deeply rooted in patient education and personalized care. She believes in "regenerative aesthetics," focusing on treatments that stimulate the body's natural restorative processes rather than merely altering appearance. Her clinical-luxury philosophy ensures every patient receives bespoke treatment plans in a safe, serene, and sophisticated environment.
-                        </p>
-</div>
-</section>
-
-<section>
-<h2 className="font-headline-sm text-headline-sm text-primary mb-6 border-b border-surface-variant pb-4">Areas of Expertise</h2>
-<div className="flex flex-wrap gap-3">
-<span className="bg-surface-container-high text-primary px-4 py-2 rounded-full font-label-caps text-label-caps">Facial Harmonization</span>
-<span className="bg-surface-container-high text-primary px-4 py-2 rounded-full font-label-caps text-label-caps">Advanced Neuromodulators</span>
-<span className="bg-surface-container-high text-primary px-4 py-2 rounded-full font-label-caps text-label-caps">Laser Resurfacing</span>
-<span className="bg-surface-container-high text-primary px-4 py-2 rounded-full font-label-caps text-label-caps">Biostimulators</span>
-<span className="bg-surface-container-high text-primary px-4 py-2 rounded-full font-label-caps text-label-caps">Skin Quality Optimization</span>
-<span className="bg-surface-container-high text-primary px-4 py-2 rounded-full font-label-caps text-label-caps">Non-Surgical Lifting</span>
-</div>
-</section>
-
-<section>
-<h2 className="font-headline-sm text-headline-sm text-primary mb-6 border-b border-surface-variant pb-4">Education &amp; Certifications</h2>
-<div className="relative border-l border-surface-variant ml-4 space-y-8 pb-4">
-
-<div className="relative pl-8">
-<div className="absolute w-3 h-3 bg-secondary-container rounded-full -left-[6.5px] top-1.5 border-2 border-surface"></div>
-<h3 className="font-body-lg text-body-lg text-primary font-medium">Fellowship in Aesthetic Medicine</h3>
-<p className="font-body-md text-body-md text-on-surface-variant mt-1">American Academy of Aesthetic Medicine, Miami</p>
-<p className="font-label-caps text-label-caps text-outline mt-2">2018 - 2019</p>
-</div>
-
-<div className="relative pl-8">
-<div className="absolute w-3 h-3 bg-surface-variant rounded-full -left-[6.5px] top-1.5 border-2 border-surface"></div>
-<h3 className="font-body-lg text-body-lg text-primary font-medium">Residency in Dermatology</h3>
-<p className="font-body-md text-body-md text-on-surface-variant mt-1">University Hospital Geneva, Switzerland</p>
-<p className="font-label-caps text-label-caps text-outline mt-2">2014 - 2018</p>
-</div>
-
-<div className="relative pl-8">
-<div className="absolute w-3 h-3 bg-surface-variant rounded-full -left-[6.5px] top-1.5 border-2 border-surface"></div>
-<h3 className="font-body-lg text-body-lg text-primary font-medium">Doctor of Medicine (MD)</h3>
-<p className="font-body-md text-body-md text-on-surface-variant mt-1">Sorbonne University Faculty of Medicine, Paris</p>
-<p className="font-label-caps text-label-caps text-outline mt-2">2008 - 2014</p>
-</div>
-</div>
-</section>
-
-<section>
-<h2 className="font-headline-sm text-headline-sm text-primary mb-6 border-b border-surface-variant pb-4">Patient Experiences</h2>
-<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-<div className="bg-surface-container-low p-8 rounded-xl border border-surface-variant hover:bg-surface-container transition-colors duration-300">
-<div className="flex text-secondary mb-4">
-<span className="material-symbols-outlined fill text-lg">star</span>
-<span className="material-symbols-outlined fill text-lg">star</span>
-<span className="material-symbols-outlined fill text-lg">star</span>
-<span className="material-symbols-outlined fill text-lg">star</span>
-<span className="material-symbols-outlined fill text-lg">star</span>
-</div>
-<p className="font-body-md text-body-md text-on-surface-variant italic mb-6">
-                                "Dr. Rostova has an incredible eye for detail. She didn't just look at one area, but considered my entire facial balance. The results are subtle, completely natural, and exactly what I hoped for. Her clinical expertise immediately put me at ease."
-                            </p>
-<p className="font-label-caps text-label-caps text-primary">— Sarah M., 42</p>
-</div>
-
-<div className="bg-surface-container-low p-8 rounded-xl border border-surface-variant hover:bg-surface-container transition-colors duration-300">
-<div className="flex text-secondary mb-4">
-<span className="material-symbols-outlined fill text-lg">star</span>
-<span className="material-symbols-outlined fill text-lg">star</span>
-<span className="material-symbols-outlined fill text-lg">star</span>
-<span className="material-symbols-outlined fill text-lg">star</span>
-<span className="material-symbols-outlined fill text-lg">star</span>
-</div>
-<p className="font-body-md text-body-md text-on-surface-variant italic mb-6">
-                                "The entire experience was luxurious without losing the serious medical undertone you want when getting injectables. Dr. Elena took time to explain the 'why' behind her recommendations. Truly the highest standard of care."
-                            </p>
-<p className="font-label-caps text-label-caps text-primary">— James L., 35</p>
-</div>
-</div>
-</section>
-</article>
-</div>
-
-
-    </div>
+      <CTABand />
+    </>
   );
 }

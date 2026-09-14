@@ -1,104 +1,134 @@
+import { Link } from "react-router-dom";
+import PageHero from "../components/PageHero";
+import CTABand from "../components/CTABand";
+import Reveal from "../components/motion/Reveal";
+
+// PLACEHOLDER PRICING - these bundles came from the original template with
+// US-dollar figures, which didn't match the AED pricing used everywhere else
+// on the site. The currency is now consistent, but the numbers themselves
+// still need to be replaced with the clinic's real promotional pricing before
+// this page goes live.
+const OFFERS = [
+  {
+    id: "radiance",
+    tag: "Limited Time",
+    name: "Radiance Renewal Bundle",
+    was: 850,
+    now: 650,
+    includes: ["Signature HydraFacial", "LED light therapy session", "Complimentary skincare consultation"],
+    image:
+      "https://images.unsplash.com/photo-1643684391140-c5056cfd3436?auto=format&fit=crop&w=1000&q=85",
+    imageAlt: "A treatment room at the clinic, prepared for a facial",
+  },
+  {
+    id: "sculpt",
+    tag: "Signature Package",
+    featured: true,
+    name: "The Sculpt & Glow",
+    was: 1200,
+    now: 950,
+    includes: ["Two areas of neuromodulator", "One syringe of premium dermal filler", "Post-care recovery kit"],
+    image:
+      "https://images.unsplash.com/photo-1731514771613-991a02407132?auto=format&fit=crop&w=1000&q=85",
+    imageAlt: "Premium skincare products arranged on a marble surface",
+  },
+  {
+    id: "introductory",
+    tag: "New Patients",
+    name: "Introductory Lift",
+    was: 400,
+    now: 299,
+    includes: ["Comprehensive skin analysis", "Customised chemical peel", "Travel-size cleanser"],
+    image:
+      "https://images.unsplash.com/photo-1761718209708-9ab9ba1c7252?auto=format&fit=crop&w=1000&q=85",
+    imageAlt: "Clear water rippling in bright, clean light",
+  },
+];
+
 export default function SpecialOffers() {
   return (
-    <div className="w-full max-w-container-max mx-auto px-gutter pb-section-padding-mobile md:pb-section-padding-desktop pt-8 md:pt-12">
+    <>
+      <PageHero
+        eyebrow="Current Promotions"
+        title="Special offers"
+        lede="Limited-time bundles that pair treatments which genuinely work well together — not discounts for their own sake."
+      />
 
+      <section className="max-w-container-max mx-auto px-gutter pb-section-padding-mobile md:pb-section-padding-desktop">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter items-start">
+          {OFFERS.map((offer, i) => (
+            <Reveal key={offer.id} delay={0.08 * i} as="div">
+              <article
+                className={`group flex flex-col h-full rounded-xl overflow-hidden bg-surface-container-lowest transition-all duration-500 hover:shadow-xl hover:shadow-primary/5 ${
+                  offer.featured
+                    ? "border-2 border-secondary-container shadow-lg shadow-secondary-container/20"
+                    : "border border-outline-variant/30 hover:border-primary/25"
+                }`}
+              >
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img
+                    className="w-full h-full object-cover transition-transform duration-[1000ms] ease-out group-hover:scale-105"
+                    alt={offer.imageAlt}
+                    src={offer.image}
+                    loading="lazy"
+                  />
+                  <span
+                    className={`absolute top-4 left-4 px-3 py-1.5 rounded-full font-label-caps text-label-caps uppercase tracking-widest ${
+                      offer.featured
+                        ? "bg-secondary-container text-on-secondary-container"
+                        : "bg-surface/90 glass-nav text-primary"
+                    }`}
+                  >
+                    {offer.tag}
+                  </span>
+                </div>
 
-<header className="text-center mb-16 md:mb-24 fade-in-up">
-<h1 className="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-primary mb-4">Special Offers</h1>
-<p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">Discover our exclusive, limited-time promotions designed to elevate your aesthetic journey with unparalleled value and care.</p>
-</header>
+                <div className="p-8 flex flex-col flex-grow">
+                  <h2 className="font-headline-sm text-headline-sm text-primary mb-4">{offer.name}</h2>
 
-<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <div className="flex items-baseline gap-3 mb-8">
+                    <span className="font-display-lg text-3xl text-primary leading-none">AED {offer.now}</span>
+                    <span className="font-body-md text-body-md text-outline line-through">AED {offer.was}</span>
+                  </div>
 
-<article className="glass-card rounded-lg overflow-hidden flex flex-col fade-in-up delay-100 group">
-<div className="relative h-64 w-full">
-<img className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="A serene, high-end medical spa treatment room with soft, warm lighting. A pristine white treatment bed is the focal point, surrounded by modern, minimalist clinical equipment. The atmosphere is calming, luxurious, and pristine, utilizing a light clinical color palette with touches of forest teal and champagne gold." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOZDa-UE6uFC9-_M4xZe8IZs7WmVAzC-rc0SC8FttrZXtKtLr5AGgnqEQWcwnJnH4jOT-hmlY7IRm_1Cd767wkjJI_5otYvvYQsAOMqS8fT3HIFSk2HGOWJeVQTBwxzqgGCKg2vJgCEgnzsIdBIrylboelD613dp_pxG68giKF6P2HCQgCoHqPWL_I1NXNW30EChNTUkonYbvIsIBHRh-Dp2556vdhcvg5ZVDXxTPyZHfgi9jjsKs2" />
-<div className="absolute top-4 left-4 bg-primary text-on-primary font-label-caps text-label-caps px-3 py-1 rounded uppercase tracking-wider">Limited Time</div>
-</div>
-<div className="p-8 flex flex-col flex-grow">
-<h2 className="font-headline-sm text-headline-sm text-primary mb-2">Radiance Renewal Bundle</h2>
-<div className="flex items-baseline gap-3 mb-6">
-<span className="font-body-lg text-body-lg text-outline line-through">$850</span>
-<span className="font-headline-md text-headline-md text-gold">$650</span>
-</div>
-<ul className="space-y-3 mb-8 flex-grow">
-<li className="flex items-start gap-3">
-<span className="material-symbols-outlined text-gold text-sm mt-1" data-icon="check">check</span>
-<span className="font-body-md text-body-md text-on-surface-variant">Signature Hydrafacial</span>
-</li>
-<li className="flex items-start gap-3">
-<span className="material-symbols-outlined text-gold text-sm mt-1" data-icon="check">check</span>
-<span className="font-body-md text-body-md text-on-surface-variant">LED Light Therapy Session</span>
-</li>
-<li className="flex items-start gap-3">
-<span className="material-symbols-outlined text-gold text-sm mt-1" data-icon="check">check</span>
-<span className="font-body-md text-body-md text-on-surface-variant">Complimentary Skincare Consultation</span>
-</li>
-</ul>
-<button className="w-full bg-gold text-white font-label-caps text-label-caps px-6 py-3 rounded uppercase tracking-wider hover:bg-yellow-600 transition-colors duration-300 hover:scale-[1.02]">Claim Offer</button>
-</div>
-</article>
+                  <ul className="space-y-3 mb-9 flex-grow">
+                    {offer.includes.map((item) => (
+                      <li key={item} className="flex items-start gap-3">
+                        <span className="material-symbols-outlined text-[18px] text-secondary mt-0.5 flex-shrink-0">
+                          check
+                        </span>
+                        <span className="font-body-md text-body-md text-on-surface-variant">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
 
-<article className="glass-card rounded-lg overflow-hidden flex flex-col fade-in-up delay-200 group border-gold border-2 relative shadow-[0_0_32px_rgba(212,175,55,0.1)]">
-<div className="absolute top-0 left-0 w-full bg-gold text-white text-center py-1 font-label-caps text-[10px] uppercase tracking-widest z-10">Signature Package</div>
-<div className="relative h-64 w-full mt-6">
-<img className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="A close-up of premium skincare products arranged elegantly on a sleek marble surface. The lighting highlights the elegant packaging, casting soft shadows. The color scheme is light and airy, emphasizing clinical purity and luxury, with subtle reflections and a sophisticated aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBora2xVZGfPs7sMBEip1womkQPSdDWDZD14-C1pLmanZ6w5R6vVb3NDKQ34uKhpaCCFiZovkHXz7yU2OmdL-Coy3T2SoHFPhQIbZ19FJ5_DXvoCmKR4nMvm11DID6Em4SQjButguuJlLuXwJ5Vafn-P6wYX3cKlcdxqk6GI0Dx0M8ETojpNUoiS7Z1PmKnszkp5j3kZjT8-wtYDWoGMAVpWtoRDO0XsoYeUM-k88xQRisNh0u0J-BH" />
-</div>
-<div className="p-8 flex flex-col flex-grow">
-<h2 className="font-headline-sm text-headline-sm text-primary mb-2">The Sculpt &amp; Glow</h2>
-<div className="flex items-baseline gap-3 mb-6">
-<span className="font-body-lg text-body-lg text-outline line-through">$1,200</span>
-<span className="font-headline-md text-headline-md text-gold">$950</span>
-</div>
-<ul className="space-y-3 mb-8 flex-grow">
-<li className="flex items-start gap-3">
-<span className="material-symbols-outlined text-gold text-sm mt-1" data-icon="check">check</span>
-<span className="font-body-md text-body-md text-on-surface-variant">2 Areas of Neuromodulators</span>
-</li>
-<li className="flex items-start gap-3">
-<span className="material-symbols-outlined text-gold text-sm mt-1" data-icon="check">check</span>
-<span className="font-body-md text-body-md text-on-surface-variant">1 Syringe Premium Dermal Filler</span>
-</li>
-<li className="flex items-start gap-3">
-<span className="material-symbols-outlined text-gold text-sm mt-1" data-icon="check">check</span>
-<span className="font-body-md text-body-md text-on-surface-variant">Post-Care Recovery Kit</span>
-</li>
-</ul>
-<button className="w-full bg-primary text-on-primary font-label-caps text-label-caps px-6 py-3 rounded uppercase tracking-wider hover:bg-primary-container hover:text-on-primary-container transition-colors duration-300 hover:scale-[1.02]">Claim Offer</button>
-</div>
-</article>
+                  <Link
+                    to="/book-consultation"
+                    className={`w-full mt-auto inline-flex justify-center items-center px-6 py-4 rounded font-label-caps text-label-caps uppercase tracking-widest transition-all active:scale-[0.98] ${
+                      offer.featured
+                        ? "bg-secondary-container text-on-secondary-container hover:bg-secondary-fixed"
+                        : "bg-primary text-on-primary hover:bg-primary-container"
+                    }`}
+                  >
+                    Claim Offer
+                  </Link>
+                </div>
+              </article>
+            </Reveal>
+          ))}
+        </div>
 
-<article className="glass-card rounded-lg overflow-hidden flex flex-col fade-in-up delay-300 group">
-<div className="relative h-64 w-full">
-<img className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="An abstract, macro shot of clear, pure water rippling gently, catching bright, clean light. The visual conveys ultimate hydration and skin purity. The color palette is minimal, focusing on bright whites and subtle cool tones, evoking a sense of clinical safety and refreshing luxury." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1vsHMDA30z8hid8H2keJDkDVzV2yqTFhGUD9UjEsYuMdVD2c0dcnNNpVx7wgMhsBpUZv3jo2FpsmTxvf7TbqjBATXfYgAu2s88euRJ2Bv9jhs0ora3sHOXrDxTVVLdnKqq_pAHzeJx59-tVp9fNSjDwvonP0Y-rX8_mvnXKEZexAJq8_HB7bynYm8B90zM8KqZzhMov9QCQvp9iKSQdETtn_0EgYbdBvJQFIBZHTNqL2tf2AtxzA1" />
-<div className="absolute top-4 left-4 bg-primary text-on-primary font-label-caps text-label-caps px-3 py-1 rounded uppercase tracking-wider">New Patients</div>
-</div>
-<div className="p-8 flex flex-col flex-grow">
-<h2 className="font-headline-sm text-headline-sm text-primary mb-2">Introductory Lift</h2>
-<div className="flex items-baseline gap-3 mb-6">
-<span className="font-body-lg text-body-lg text-outline line-through">$400</span>
-<span className="font-headline-md text-headline-md text-gold">$299</span>
-</div>
-<ul className="space-y-3 mb-8 flex-grow">
-<li className="flex items-start gap-3">
-<span className="material-symbols-outlined text-gold text-sm mt-1" data-icon="check">check</span>
-<span className="font-body-md text-body-md text-on-surface-variant">Comprehensive Skin Analysis</span>
-</li>
-<li className="flex items-start gap-3">
-<span className="material-symbols-outlined text-gold text-sm mt-1" data-icon="check">check</span>
-<span className="font-body-md text-body-md text-on-surface-variant">Customized Chemical Peel</span>
-</li>
-<li className="flex items-start gap-3">
-<span className="material-symbols-outlined text-gold text-sm mt-1" data-icon="check">check</span>
-<span className="font-body-md text-body-md text-on-surface-variant">Travel-Size Cleanser</span>
-</li>
-</ul>
-<button className="w-full bg-gold text-white font-label-caps text-label-caps px-6 py-3 rounded uppercase tracking-wider hover:bg-yellow-600 transition-colors duration-300 hover:scale-[1.02]">Claim Offer</button>
-</div>
-</article>
-</div>
+        <p className="font-body-md text-sm text-on-surface-variant mt-12 max-w-2xl">
+          Offers cannot be combined with other promotions and are subject to a suitability assessment at your
+          consultation. Prices are inclusive of VAT.
+        </p>
+      </section>
 
-
-    </div>
+      <CTABand
+        eyebrow="Not Sure Which?"
+        title="Let us build the plan"
+        lede="Bring your goals to a complimentary consultation and we'll tell you honestly which of these — if any — is right for you."
+      />
+    </>
   );
 }

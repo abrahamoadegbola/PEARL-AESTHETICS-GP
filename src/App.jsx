@@ -12,10 +12,19 @@ import SkincareBoutique from "./pages/SkincareBoutique";
 import ProductDetail from "./pages/ProductDetail";
 import SpecialOffers from "./pages/SpecialOffers";
 import CartCheckout from "./pages/CartCheckout";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
+import CheckoutCancel from "./pages/CheckoutCancel";
 import AboutUs from "./pages/AboutUs";
 import InsightsAdvice from "./pages/InsightsAdvice";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminLayout from "./pages/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminBookings from "./pages/admin/AdminBookings";
+import AdminOrders from "./pages/admin/AdminOrders";
+import AdminInventory from "./pages/admin/AdminInventory";
+import AdminTreatments from "./pages/admin/AdminTreatments";
 
 export default function App() {
   return (
@@ -33,10 +42,21 @@ export default function App() {
         <Route path="/shop/:id" element={<ProductDetail />} />
         <Route path="/offers" element={<SpecialOffers />} />
         <Route path="/cart" element={<CartCheckout />} />
+        <Route path="/checkout/success" element={<CheckoutSuccess />} />
+        <Route path="/checkout/cancel" element={<CheckoutCancel />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/insights" element={<InsightsAdvice />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<NotFound />} />
+      </Route>
+
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminDashboard />} />
+        <Route path="bookings" element={<AdminBookings />} />
+        <Route path="orders" element={<AdminOrders />} />
+        <Route path="inventory" element={<AdminInventory />} />
+        <Route path="treatments" element={<AdminTreatments />} />
       </Route>
     </Routes>
   );

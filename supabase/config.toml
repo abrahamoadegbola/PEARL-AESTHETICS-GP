@@ -1,0 +1,23 @@
+# Supabase CLI project config. Run `supabase link --project-ref your-ref`
+# before deploying functions - see README.md for the full setup.
+
+project_id = "pearl-aesthetics"
+
+[functions.create-checkout-session]
+verify_jwt = true
+
+[functions.checkout-session-status]
+verify_jwt = true
+
+[functions.send-booking-email]
+verify_jwt = true
+
+[functions.send-contact-email]
+verify_jwt = true
+
+# Stripe calls this one directly (not through a logged-in Supabase client),
+# so it can't carry a Supabase JWT. Signature verification inside the
+# function itself is what secures it instead. Setting this here means you
+# don't need to remember the --no-verify-jwt CLI flag on every deploy.
+[functions.stripe-webhook]
+verify_jwt = false

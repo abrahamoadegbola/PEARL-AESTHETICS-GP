@@ -1,93 +1,114 @@
+import { Link } from "react-router-dom";
+import useDbCollection from "../hooks/useDbCollection";
+import { getActiveTreatments } from "../lib/db";
+import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
+import PageHero from "../components/PageHero";
+import CTABand from "../components/CTABand";
+import Reveal from "../components/motion/Reveal";
+
 export default function Treatments() {
+  const [treatments, { loading, error }] = useDbCollection(getActiveTreatments);
+
+  const grouped = treatments.reduce((acc, t) => {
+    const category = t.category || "Other";
+    acc[category] = acc[category] || [];
+    acc[category].push(t);
+    return acc;
+  }, {});
+
   return (
-    <div className="w-full max-w-container-max mx-auto px-gutter pb-section-padding-desktop pt-8">
+    <>
+      <PageHero
+        eyebrow="Treatments"
+        title="Refined enhancements for timeless elegance"
+        lede="A curated menu of clinical treatments designed to subtly perfect and rejuvenate — medical precision with an eye for natural balance."
+      />
 
+      <div className="max-w-container-max mx-auto px-gutter">
+        <SupabaseSetupNotice />
+      </div>
 
-<section className="py-20 md:py-32 fade-in-up">
-<h1 className="font-display-lg text-display-lg text-primary mb-6 max-w-2xl">Refined Enhancements for Timeless Elegance.</h1>
-<p className="font-body-lg text-body-lg text-on-surface-variant max-w-xl">
-                Explore our curated menu of clinical treatments, designed to subtly perfect and rejuvenate. Our approach combines medical precision with an eye for natural balance.
-            </p>
-</section>
+      <section className="max-w-container-max mx-auto px-gutter pb-section-padding-mobile md:pb-section-padding-desktop">
+        {loading && (
+          <p className="font-body-md text-body-md text-on-surface-variant py-16">Loading treatments…</p>
+        )}
+        {error && (
+          <p className="font-body-md text-body-md text-error py-16">
+            Couldn't load treatments: {error.message}
+          </p>
+        )}
 
-<div className="grid grid-cols-1 md:grid-cols-12 gap-x-gutter gap-y-24">
+        {!loading && !error && (
+          <div className="flex flex-col gap-24 md:gap-32">
+            {Object.entries(grouped).map(([category, items]) => (
+              <section key={category} className="grid grid-cols-1 md:grid-cols-12 gap-gutter md:gap-16">
+                {/* The category name parks itself alongside its treatments
+                    while you scroll, so you never lose the thread. */}
+                <div className="md:col-span-4 md:sticky md:top-32 md:self-start">
+                  <Reveal>
+                    <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-[0.25em] mb-4 block">
+                      {String(items.length).padStart(2, "0")} treatments
+                    </span>
+                    <h2
+                      className="font-display-lg text-primary"
+                      style={{ fontSize: "clamp(1.75rem, 3vw, 2.5rem)", lineHeight: 1.15, letterSpacing: "-0.015em" }}
+                    >
+                      {category}
+                    </h2>
+                  </Reveal>
+                </div>
 
-<section className="col-span-1 md:col-span-12 grid grid-cols-1 md:grid-cols-12 gap-gutter fade-in-up delay-100">
-<div className="md:col-span-4 sticky top-32 self-start">
-<h2 className="font-headline-md text-headline-md text-primary mb-4 border-b border-surface-container-high pb-4">Injectables</h2>
-<p className="font-body-md text-body-md text-on-surface-variant">Precision treatments designed to smooth fine lines, restore lost volume, and enhance your natural contours with subtle, elegant results.</p>
-</div>
-<div className="md:col-span-8 flex flex-col gap-6">
+                {/* Plain rules rather than cards - the list reads as a menu,
+                    which is what it is. */}
+                <div className="md:col-span-8 border-t border-outline-variant/40">
+                  {items.map((t, i) => (
+                    <Reveal key={t.id} delay={0.05 * (i % 4)}>
+                      <Link
+                        to="/treatment-menu"
+                        className="group block border-b border-outline-variant/40 py-8 md:py-10 transition-colors hover:bg-surface-container-lowest/70"
+                      >
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between mb-3">
+                          <h3 className="font-headline-sm text-headline-sm text-primary group-hover:text-surface-tint transition-colors">
+                            {t.name}
+                          </h3>
+                          <span className="font-body-md text-body-md text-primary font-medium flex-shrink-0 sm:ml-8">
+                            {t.priceLabel || `From AED ${t.priceFrom}`}
+                          </span>
+                        </div>
+                        <p className="font-body-md text-body-md text-on-surface-variant max-w-xl mb-5">
+                          {t.description}
+                        </p>
+                        <div className="flex items-center gap-6">
+                          {t.durationMinutes && (
+                            <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest flex items-center gap-2">
+                              <span className="material-symbols-outlined text-[16px]">schedule</span>
+                              {t.durationMinutes} min
+                            </span>
+                          )}
+                          <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest inline-flex items-center gap-2 ml-auto">
+                            Learn more
+                            <span className="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">
+                              arrow_forward
+                            </span>
+                          </span>
+                        </div>
+                      </Link>
+                    </Reveal>
+                  ))}
+                </div>
+              </section>
+            ))}
 
-<div className="bg-surface-container-lowest p-8 rounded-lg group hover:-translate-y-1 transition-transform duration-300 ease-out border border-surface-container-low shadow-sm">
-<div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-<h3 className="font-headline-sm text-headline-sm text-primary">Anti-Wrinkle Injections</h3>
-<div className="mt-2 md:mt-0 font-label-caps text-label-caps text-on-surface-variant bg-surface-container px-3 py-1 rounded-full flex items-center gap-2">
-<span className="material-symbols-outlined text-[16px]">schedule</span> 30 MIN
-                            </div>
-</div>
-<p className="font-body-md text-body-md text-on-surface-variant mb-6">Targeted relaxing of specific facial muscles to soften expression lines and prevent the formation of deeper static wrinkles. Common areas include frown lines, forehead, and crow's feet.</p>
-<div className="flex justify-between items-center border-t border-surface-container pt-4">
-<span className="font-body-md text-body-md text-primary font-medium">From $250</span>
-<a className="text-primary font-body-md text-body-md font-medium hover:text-secondary-container transition-colors flex items-center gap-1" href="#">Learn More <span className="material-symbols-outlined text-[18px]">arrow_forward</span></a>
-</div>
-</div>
+            {Object.keys(grouped).length === 0 && (
+              <p className="text-center text-on-surface-variant font-body-md py-16">
+                No treatments available right now.
+              </p>
+            )}
+          </div>
+        )}
+      </section>
 
-<div className="bg-surface-container-lowest p-8 rounded-lg group hover:-translate-y-1 transition-transform duration-300 ease-out border border-surface-container-low shadow-sm">
-<div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-<h3 className="font-headline-sm text-headline-sm text-primary">Dermal Fillers</h3>
-<div className="mt-2 md:mt-0 font-label-caps text-label-caps text-on-surface-variant bg-surface-container px-3 py-1 rounded-full flex items-center gap-2">
-<span className="material-symbols-outlined text-[16px]">schedule</span> 45 MIN
-                            </div>
-</div>
-<p className="font-body-md text-body-md text-on-surface-variant mb-6">Hyaluronic acid-based gels meticulously placed to restore volume, contour cheeks, define jawlines, or subtlely plump lips for a refreshed appearance.</p>
-<div className="flex justify-between items-center border-t border-surface-container pt-4">
-<span className="font-body-md text-body-md text-primary font-medium">From $600</span>
-<a className="text-primary font-body-md text-body-md font-medium hover:text-secondary-container transition-colors flex items-center gap-1" href="#">Learn More <span className="material-symbols-outlined text-[18px]">arrow_forward</span></a>
-</div>
-</div>
-</div>
-</section>
-
-<section className="col-span-1 md:col-span-12 grid grid-cols-1 md:grid-cols-12 gap-gutter fade-in-up delay-200">
-<div className="md:col-span-4 sticky top-32 self-start">
-<h2 className="font-headline-md text-headline-md text-primary mb-4 border-b border-surface-container-high pb-4">Skin Health</h2>
-<p className="font-body-md text-body-md text-on-surface-variant">Advanced therapies focusing on cellular renewal, texture refinement, and luminous tone for a flawless, makeup-free complexion.</p>
-</div>
-<div className="md:col-span-8 flex flex-col gap-6">
-
-<div className="bg-surface-container-lowest p-8 rounded-lg group hover:-translate-y-1 transition-transform duration-300 ease-out border border-surface-container-low shadow-sm">
-<div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-<h3 className="font-headline-sm text-headline-sm text-primary">Clinical Peels</h3>
-<div className="mt-2 md:mt-0 font-label-caps text-label-caps text-on-surface-variant bg-surface-container px-3 py-1 rounded-full flex items-center gap-2">
-<span className="material-symbols-outlined text-[16px]">schedule</span> 45 MIN
-                            </div>
-</div>
-<p className="font-body-md text-body-md text-on-surface-variant mb-6">Bespoke chemical exfoliation blends tailored to address pigmentation, acne scarring, or dullness, revealing smoother, brighter skin beneath.</p>
-<div className="flex justify-between items-center border-t border-surface-container pt-4">
-<span className="font-body-md text-body-md text-primary font-medium">From $180</span>
-<a className="text-primary font-body-md text-body-md font-medium hover:text-secondary-container transition-colors flex items-center gap-1" href="#">Learn More <span className="material-symbols-outlined text-[18px]">arrow_forward</span></a>
-</div>
-</div>
-
-<div className="bg-surface-container-lowest p-8 rounded-lg group hover:-translate-y-1 transition-transform duration-300 ease-out border border-surface-container-low shadow-sm">
-<div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-<h3 className="font-headline-sm text-headline-sm text-primary">Microneedling</h3>
-<div className="mt-2 md:mt-0 font-label-caps text-label-caps text-on-surface-variant bg-surface-container px-3 py-1 rounded-full flex items-center gap-2">
-<span className="material-symbols-outlined text-[16px]">schedule</span> 60 MIN
-                            </div>
-</div>
-<p className="font-body-md text-body-md text-on-surface-variant mb-6">Collagen induction therapy using fine needles to create controlled micro-injuries, stimulating the body's natural healing process for firmer, tighter skin.</p>
-<div className="flex justify-between items-center border-t border-surface-container pt-4">
-<span className="font-body-md text-body-md text-primary font-medium">From $350</span>
-<a className="text-primary font-body-md text-body-md font-medium hover:text-secondary-container transition-colors flex items-center gap-1" href="#">Learn More <span className="material-symbols-outlined text-[18px]">arrow_forward</span></a>
-</div>
-</div>
-</div>
-</section>
-</div>
-
-
-    </div>
+      <CTABand />
+    </>
   );
 }

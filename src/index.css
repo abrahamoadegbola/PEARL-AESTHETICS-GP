@@ -3,6 +3,19 @@
 @tailwind utilities;
 
 .material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 
@@ -16,10 +29,71 @@
   transform: translateY(0);
 }
 
+/* Horizontal filter/card rails scroll, but the scrollbar itself is chrome we
+   don't want cutting across the layout - the rail is always paired with a
+   visible overflow edge or pagination so the affordance isn't lost. */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Sticky filter bars: translucent page background with a blur behind, so
+   content scrolling underneath reads as depth rather than clutter. */
+.glass-nav {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
   margin: 0;
+  overflow-x: hidden;
+}
+
+/* Material Symbols are variable fonts - `fill` is used throughout for filled
+   star/heart glyphs and needs the axis set, not just a class name. */
+.material-symbols-outlined.fill {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .fade-up {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Styled date/time inputs (used on the booking form): force light
+   color-scheme so the native picker doesn't flip to a jarring dark
+   theme on OS dark-mode, and recolor the default gray calendar/clock
+   icon toward the site's forest-green primary so it doesn't look like
+   an unstyled browser default sitting inside an otherwise-branded input.
+   The rest of the picker widget itself (the popup calendar/clock UI) is
+   OS-rendered and out of reach of CSS - this is as far as styling a
+   native date/time input can go without swapping in a JS date picker. */
+.styled-date-input,
+.styled-time-input {
+  color-scheme: light;
+}
+.styled-date-input::-webkit-calendar-picker-indicator,
+.styled-time-input::-webkit-calendar-picker-indicator {
+  filter: invert(13%) sepia(47%) saturate(1000%) hue-rotate(126deg) brightness(95%) contrast(101%);
+  cursor: pointer;
+  opacity: 0.75;
+  transition: opacity 150ms ease;
+}
+.styled-date-input::-webkit-calendar-picker-indicator:hover,
+.styled-time-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }

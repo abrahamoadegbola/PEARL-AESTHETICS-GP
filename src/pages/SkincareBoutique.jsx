@@ -1,139 +1,241 @@
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import useDbCollection from "../hooks/useDbCollection";
+import { getActiveProducts } from "../lib/db";
+import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
+import PageHero from "../components/PageHero";
+import CTABand from "../components/CTABand";
+import Reveal from "../components/motion/Reveal";
+import { useCart } from "../context/CartContext";
+
+const CONCERNS = ["Anti-Aging", "Hydration", "Brightening", "Acne & Pores"];
+
+const SORTS = [
+  { value: "recommended", label: "Recommended" },
+  { value: "price-desc", label: "Price: High to Low" },
+  { value: "price-asc", label: "Price: Low to High" },
+];
+
 export default function SkincareBoutique() {
+  const [products, { loading, error }] = useDbCollection(getActiveProducts);
+  const { addItem } = useCart();
+  const [activeConcerns, setActiveConcerns] = useState([]);
+  const [sort, setSort] = useState("recommended");
+  const [added, setAdded] = useState(null);
+
+  const toggleConcern = (concern) => {
+    setActiveConcerns((prev) =>
+      prev.includes(concern) ? prev.filter((c) => c !== concern) : [...prev, concern]
+    );
+  };
+
+  const filtered = useMemo(() => {
+    let list = products;
+    if (activeConcerns.length) {
+      list = list.filter((p) => activeConcerns.includes(p.concern));
+    }
+    if (sort === "price-desc") list = [...list].sort((a, b) => b.price - a.price);
+    if (sort === "price-asc") list = [...list].sort((a, b) => a.price - b.price);
+    return list;
+  }, [products, activeConcerns, sort]);
+
+  const handleAdd = (product) => {
+    addItem(product, 1);
+    setAdded(product.id);
+    window.setTimeout(() => setAdded(null), 1200);
+  };
+
   return (
     <>
+      <PageHero
+        eyebrow="The Boutique"
+        title="Curated skincare"
+        lede="Medical-grade formulations chosen by our clinical team — the same products we use and recommend after treatment."
+      />
 
+      <div className="max-w-container-max mx-auto px-gutter">
+        <SupabaseSetupNotice />
+      </div>
 
-<div className="max-w-container-max mx-auto px-gutter mb-16 text-center md:text-left">
-<h1 className="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-4">Curated Skincare</h1>
-<p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">Medical-grade formulations for exceptional aesthetic outcomes. Developed and recommended by our clinical team.</p>
-</div>
-<div className="max-w-container-max mx-auto px-gutter flex flex-col md:flex-row gap-gutter">
+      <section className="max-w-container-max mx-auto px-gutter pb-section-padding-mobile md:pb-section-padding-desktop">
+        <div className="flex flex-col md:flex-row gap-gutter md:gap-16">
+          {/* ---------- FILTERS ---------- */}
+          <aside className="w-full md:w-56 flex-shrink-0">
+            <div className="md:sticky md:top-32 space-y-10">
+              <div>
+                <h2 className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-[0.25em] mb-5">
+                  Category
+                </h2>
+                <p className="font-body-md text-body-md text-primary font-medium">Skincare</p>
+              </div>
 
-<aside className="w-full md:w-64 flex-shrink-0 mb-8 md:mb-0">
-<div className="sticky top-32 space-y-8">
-<div>
-<h3 className="font-label-caps text-label-caps text-outline mb-4 uppercase tracking-widest">Categories</h3>
-<ul className="space-y-3">
-<li><a className="font-body-md text-body-md text-primary font-bold" href="#">Skincare</a></li>
-<li><a className="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Supplements</a></li>
-<li><a className="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Devices</a></li>
-<li><a className="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors" href="#">Gift Sets</a></li>
-</ul>
-</div>
-<div>
-<h3 className="font-label-caps text-label-caps text-outline mb-4 uppercase tracking-widest">Skin Concern</h3>
-<ul className="space-y-3">
-<li><label className="flex items-center gap-2 cursor-pointer"><input className="form-checkbox text-primary border-outline focus:ring-primary rounded-sm h-4 w-4" type="checkbox" /><span className="font-body-md text-body-md text-on-surface-variant">Anti-Aging</span></label></li>
-<li><label className="flex items-center gap-2 cursor-pointer"><input className="form-checkbox text-primary border-outline focus:ring-primary rounded-sm h-4 w-4" type="checkbox" /><span className="font-body-md text-body-md text-on-surface-variant">Hydration</span></label></li>
-<li><label className="flex items-center gap-2 cursor-pointer"><input className="form-checkbox text-primary border-outline focus:ring-primary rounded-sm h-4 w-4" type="checkbox" /><span className="font-body-md text-body-md text-on-surface-variant">Brightening</span></label></li>
-<li><label className="flex items-center gap-2 cursor-pointer"><input className="form-checkbox text-primary border-outline focus:ring-primary rounded-sm h-4 w-4" type="checkbox" /><span className="font-body-md text-body-md text-on-surface-variant">Acne &amp; Pores</span></label></li>
-</ul>
-</div>
-</div>
-</aside>
+              <div>
+                <h2 className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-[0.25em] mb-5">
+                  Skin Concern
+                </h2>
+                <ul className="space-y-3.5">
+                  {CONCERNS.map((concern) => (
+                    <li key={concern}>
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <input
+                          className="form-checkbox text-primary border-outline-variant focus:ring-primary rounded-sm h-4 w-4"
+                          type="checkbox"
+                          checked={activeConcerns.includes(concern)}
+                          onChange={() => toggleConcern(concern)}
+                        />
+                        <span className="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">
+                          {concern}
+                        </span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+                {activeConcerns.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveConcerns([])}
+                    className="mt-6 font-label-caps text-label-caps text-primary uppercase tracking-widest underline underline-offset-4"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
+            </div>
+          </aside>
 
-<div className="flex-grow">
+          {/* ---------- GRID ---------- */}
+          <div className="flex-grow min-w-0">
+            <div className="flex flex-wrap gap-4 justify-between items-center mb-10 pb-5 border-b border-outline-variant/40">
+              <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
+                {filtered.length} product{filtered.length === 1 ? "" : "s"}
+              </span>
+              <label className="flex items-center gap-3">
+                <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
+                  Sort by
+                </span>
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value)}
+                  className="bg-transparent border-0 border-b border-outline-variant focus:border-primary focus:ring-0 font-body-md text-body-md text-primary cursor-pointer py-1 pl-0 pr-7"
+                >
+                  {SORTS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
 
-<div className="flex justify-between items-center mb-8 pb-4 border-b border-surface-variant">
-<span className="font-body-md text-body-md text-on-surface-variant">Showing 24 Products</span>
-<div className="flex items-center gap-4">
-<span className="font-label-caps text-label-caps text-outline uppercase">Sort By:</span>
-<select className="bg-transparent border-none font-body-md text-body-md text-primary focus:ring-0 cursor-pointer p-0 pr-6">
-<option>Recommended</option>
-<option>Price: High to Low</option>
-<option>Price: Low to High</option>
-<option>Newest Arrivals</option>
-</select>
-</div>
-</div>
+            {loading && (
+              <p className="text-center text-on-surface-variant font-body-md py-16">Loading products…</p>
+            )}
+            {error && (
+              <p className="text-center text-error font-body-md py-16">
+                Couldn't load products: {error.message}
+              </p>
+            )}
 
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12">
+            {!loading && !error && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-gutter">
+                {filtered.map((product, i) => (
+                  <Reveal key={product.id} delay={0.06 * (i % 3)} as="div">
+                    <div className="group flex flex-col h-full bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/30 transition-all duration-500 hover:border-primary/25 hover:shadow-xl hover:shadow-primary/5">
+                      <Link
+                        to={`/shop/${product.id}`}
+                        className="relative aspect-square bg-surface-container-low flex items-center justify-center overflow-hidden"
+                      >
+                        <img
+                          className="object-contain h-full w-full p-10 transition-transform duration-700 ease-out group-hover:scale-105"
+                          alt={product.name}
+                          src={product.image}
+                          loading="lazy"
+                        />
+                        {product.badge && (
+                          <span className="absolute top-4 left-4 bg-secondary-container text-on-secondary-container px-3 py-1.5 rounded-full font-label-caps text-label-caps uppercase tracking-widest">
+                            {product.badge}
+                          </span>
+                        )}
+                        {product.stock <= 0 && (
+                          <span className="absolute inset-0 bg-surface/80 flex items-center justify-center font-label-caps text-label-caps text-on-surface-variant uppercase tracking-[0.25em]">
+                            Out of stock
+                          </span>
+                        )}
+                      </Link>
 
-<div className="group flex flex-col h-full bg-surface-container-lowest p-4 rounded-xl border border-surface-variant transition-transform hover:-translate-y-1 duration-300">
-<div className="relative w-full aspect-square mb-4 bg-surface-container-low rounded-lg overflow-hidden flex items-center justify-center">
-<img className="object-contain h-full w-full p-8 transition-transform duration-500 group-hover:scale-105" alt="A minimalist, high-end medical-grade serum bottle on a clean white background with soft, diffused lighting and a slight shadow. The aesthetic is clinical-luxury, with deep forest teal and champagne gold accents, embodying a spa-inspired atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHAPQjZJv8wms7bj-EvstzQCEjQaO7IJ3CAgvau1l6Fxz6oU30W1izWBE8KL1aTsVJRgcbb8DJdMiSopP0Azh9kDwG2OME2tiMWrQRecC4ybOAxDvIsGiWI7m7x4ygv6gQeE7rdJomDf9crHKIAGxhpNK9zYiAMj33xBgi_OhgjK2CfNvlDg_G02mkojyPlvriAGS-E-KoSvKwIcHopANAa7pEjvAAMPnDjhiBpAV7l9PBozfYmCBY" />
-<div className="absolute top-2 left-2 bg-secondary-container text-on-secondary-container px-2 py-1 rounded font-label-caps text-label-caps">Bestseller</div>
-</div>
-<div className="flex flex-col flex-grow">
-<div className="flex items-center gap-1 mb-2 text-secondary-fixed-dim">
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star_half</span>
-<span className="font-body-md text-xs text-outline ml-1">(128)</span>
-</div>
-<h3 className="font-headline-sm text-headline-sm text-primary mb-1">Molecular Hydration Serum</h3>
-<p className="font-body-md text-sm text-on-surface-variant mb-4 flex-grow">Intensive HA formula for deep cellular hydration.</p>
-<div className="flex items-center justify-between mt-auto pt-4 border-t border-surface-variant">
-<span className="font-body-lg text-body-lg text-primary">AED 450</span>
-<button className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary hover:bg-primary hover:text-on-primary transition-colors group/btn">
-<span className="material-symbols-outlined group-hover/btn:scale-110 transition-transform">add</span>
-</button>
-</div>
-</div>
-</div>
+                      <div className="p-6 flex flex-col flex-grow">
+                        {product.reviews > 0 && (
+                          <div className="flex items-center gap-1 mb-3 text-secondary">
+                            {Array.from({ length: 5 }).map((_, s) => (
+                              <span
+                                key={s}
+                                className="material-symbols-outlined text-[15px]"
+                                style={{
+                                  fontVariationSettings:
+                                    s < Math.round(product.rating) ? "'FILL' 1" : "'FILL' 0",
+                                }}
+                              >
+                                star
+                              </span>
+                            ))}
+                            <span className="font-label-caps text-label-caps text-outline ml-1.5">
+                              ({product.reviews})
+                            </span>
+                          </div>
+                        )}
 
-<div className="group flex flex-col h-full bg-surface-container-lowest p-4 rounded-xl border border-surface-variant transition-transform hover:-translate-y-1 duration-300">
-<div className="relative w-full aspect-square mb-4 bg-surface-container-low rounded-lg overflow-hidden flex items-center justify-center">
-<img className="object-contain h-full w-full p-8 transition-transform duration-500 group-hover:scale-105" alt="A sleek, sophisticated jar of anti-aging night cream on a minimal marble plinth. Soft, directional light creates a pristine, clinical-luxury feel. The overall color palette is light and airy with deep teal typography accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCrK4M5jGzseqiRa5M8093KzcbEy7zhb1pHmbYS_3w3T7oPmSFrtyi0d9kfIdKcUk57vhIf_vhKDheMIpVh6BVhEz7IlvD1B1wFyKMEkEVX55ILX9besMu1x0V96O83KO2hzemwPZAfSOIe44hTlClsAHloC8gVsiDXZPk-xOmkPUhNarZsfg--g64Qzuklg6Y5OEGtaWB9k5wQk2KCUThuXXm8utZ7ATW_JtGQAXEeaeNYbZheLzJU" />
-</div>
-<div className="flex flex-col flex-grow">
-<div className="flex items-center gap-1 mb-2 text-secondary-fixed-dim">
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-<span className="font-body-md text-xs text-outline ml-1">(84)</span>
-</div>
-<h3 className="font-headline-sm text-headline-sm text-primary mb-1">Cellular Renewal Cream</h3>
-<p className="font-body-md text-sm text-on-surface-variant mb-4 flex-grow">Nighttime barrier repair and peptide complex.</p>
-<div className="flex items-center justify-between mt-auto pt-4 border-t border-surface-variant">
-<span className="font-body-lg text-body-lg text-primary">AED 680</span>
-<button className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary hover:bg-primary hover:text-on-primary transition-colors group/btn">
-<span className="material-symbols-outlined group-hover/btn:scale-110 transition-transform">add</span>
-</button>
-</div>
-</div>
-</div>
+                        <Link to={`/shop/${product.id}`}>
+                          <h3 className="font-headline-sm text-headline-sm text-primary mb-2 group-hover:text-surface-tint transition-colors">
+                            {product.name}
+                          </h3>
+                        </Link>
+                        <p className="font-body-md text-sm text-on-surface-variant mb-6 flex-grow">
+                          {product.description}
+                        </p>
 
-<div className="group flex flex-col h-full bg-surface-container-lowest p-4 rounded-xl border border-surface-variant transition-transform hover:-translate-y-1 duration-300">
-<div className="relative w-full aspect-square mb-4 bg-surface-container-low rounded-lg overflow-hidden flex items-center justify-center">
-<img className="object-contain h-full w-full p-8 transition-transform duration-500 group-hover:scale-105" alt="A minimal white tube of SPF 50 sunscreen standing upright against a pristine, soft-focus background. The lighting is bright and airy, reflecting a clinical yet luxurious spa aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD20O3n5fZn7-5LDqH-if0QhHjd1xtePG_WCqD7Ia46cU0OvYWd0NSuF4JhCJkPo1bYqXGtFclyaFNb1BvOo7gawjDX0OOu212aToIlVUYRqZ9MCOneCdi1nmSsXy9cMTl2FPVHrrY_75EDsZW9XuVzA0gcwH2TvX_7hEYUCF10cThZyagNp4n-tpulvaQrJFbPWnnZtVQYvGSevBPkpqm9jCJRpHQc_Q0Wg4dAIMU6dhKF2x3g-qvE" />
-</div>
-<div className="flex flex-col flex-grow">
-<div className="flex items-center gap-1 mb-2 text-secondary-fixed-dim">
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-<span className="material-symbols-outlined text-[16px]" style={{fontVariationSettings: "'FILL' 1"}}>star</span>
-<span className="material-symbols-outlined text-[16px]">star</span>
-<span className="font-body-md text-xs text-outline ml-1">(42)</span>
-</div>
-<h3 className="font-headline-sm text-headline-sm text-primary mb-1">Advanced UV Defense SPF 50</h3>
-<p className="font-body-md text-sm text-on-surface-variant mb-4 flex-grow">Invisible, weightless protection for post-procedure skin.</p>
-<div className="flex items-center justify-between mt-auto pt-4 border-t border-surface-variant">
-<span className="font-body-lg text-body-lg text-primary">AED 210</span>
-<button className="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center text-primary hover:bg-primary hover:text-on-primary transition-colors group/btn">
-<span className="material-symbols-outlined group-hover/btn:scale-110 transition-transform">add</span>
-</button>
-</div>
-</div>
-</div>
-</div>
+                        <div className="flex items-center justify-between mt-auto pt-5 border-t border-outline-variant/30">
+                          <span className="font-body-lg text-body-lg text-primary font-medium">
+                            AED {product.price}
+                          </span>
+                          <button
+                            onClick={() => handleAdd(product)}
+                            disabled={product.stock <= 0}
+                            aria-label={`Add ${product.name} to cart`}
+                            className="w-11 h-11 rounded-full bg-surface-container flex items-center justify-center text-primary hover:bg-primary hover:text-on-primary transition-colors active:scale-90 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+                          >
+                            <motion.span
+                              key={added === product.id ? "check" : "add"}
+                              initial={{ scale: 0.5, opacity: 0, rotate: -45 }}
+                              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                              className="material-symbols-outlined text-[20px] inline-block"
+                            >
+                              {added === product.id ? "check" : "add"}
+                            </motion.span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+            )}
 
-<div className="flex justify-center mt-12 gap-2">
-<button className="w-10 h-10 rounded-full flex items-center justify-center text-outline hover:text-primary transition-colors"><span className="material-symbols-outlined">chevron_left</span></button>
-<button className="w-10 h-10 rounded-full flex items-center justify-center bg-primary text-on-primary font-body-md">1</button>
-<button className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors font-body-md">2</button>
-<button className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors font-body-md">3</button>
-<button className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"><span className="material-symbols-outlined">chevron_right</span></button>
-</div>
-</div>
-</div>
+            {!loading && !error && filtered.length === 0 && (
+              <p className="text-center text-on-surface-variant font-body-md py-20">
+                No products match the selected filters.
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
 
-
+      <CTABand
+        eyebrow="Not Sure What Suits You?"
+        title="Get a skin plan, not a shopping list"
+        lede="A complimentary consultation tells you which of these your skin actually needs — and which it doesn't."
+      />
     </>
   );
 }

@@ -1,95 +1,87 @@
 import { Link } from "react-router-dom";
+import BUSINESS from "../data/business";
+import Reveal from "./motion/Reveal";
 
 export default function Footer() {
   return (
-    <footer className="w-full py-section-padding-desktop mt-auto bg-surface-container-highest pb-24 md:pb-section-padding-desktop">
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter px-gutter max-w-container-max mx-auto">
-        <div className="md:col-span-4 flex flex-col items-start mb-12 md:mb-0">
-          <span className="font-display-lg text-headline-md text-primary mb-4">AESTHETICA</span>
-          <p className="font-body-md text-body-md text-on-surface-variant opacity-80 max-w-xs mb-8">
-            Precision Medicine. Boutique Experience. Redefining aesthetic treatments with clinical
-            excellence.
-          </p>
-          <div className="flex gap-4">
-            <a
-              className="text-on-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-container transition-colors duration-300 ease-in-out"
-              href="#"
-            >
-              <span className="material-symbols-outlined">photo_camera</span>
-            </a>
-            <a
-              className="text-on-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-container transition-colors duration-300 ease-in-out"
-              href="#"
-            >
-              <span className="material-symbols-outlined">mail</span>
-            </a>
-          </div>
-        </div>
+    <footer className="w-full bg-primary text-on-primary pt-section-padding-desktop pb-24 md:pb-section-padding-desktop mt-auto">
+      <div className="max-w-container-max mx-auto px-gutter">
+        <Reveal className="mb-20 max-w-2xl" as="div">
+          <span className="font-label-caps text-label-caps uppercase tracking-[0.25em] opacity-60 mb-4 block">
+            {BUSINESS.address.line2} · {BUSINESS.address.city}
+          </span>
+          <span className="font-display-lg text-display-lg-mobile md:text-display-lg block mb-6">
+            {BUSINESS.name}
+          </span>
+          <p className="font-body-lg text-body-lg opacity-70 max-w-lg">{BUSINESS.description}</p>
+        </Reveal>
 
-        <div className="md:col-span-8 flex flex-col md:flex-row justify-end gap-12 md:gap-24">
-          <div className="flex flex-col gap-4">
-            <span className="font-label-caps text-label-caps text-primary font-semibold uppercase tracking-widest mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-20">
+          <div className="md:col-span-3">
+            <span className="font-label-caps text-label-caps opacity-50 uppercase tracking-widest mb-5 block">
               Explore
             </span>
-            <Link
-              className="font-body-md text-body-md text-on-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-container transition-colors duration-300 ease-in-out"
-              to="/treatments"
-            >
-              Treatments
-            </Link>
-            <Link
-              className="font-body-md text-body-md text-on-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-container transition-colors duration-300 ease-in-out"
-              to="/results"
-            >
-              Results Gallery
-            </Link>
-            <Link
-              className="font-body-md text-body-md text-on-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-container transition-colors duration-300 ease-in-out"
-              to="/shop"
-            >
-              Shop
-            </Link>
+            <div className="flex flex-col gap-3">
+              <Link className="font-body-md text-body-md opacity-80 hover:opacity-100 hover:text-secondary-container transition-all duration-300" to="/treatments">
+                Treatments
+              </Link>
+              <Link className="font-body-md text-body-md opacity-80 hover:opacity-100 hover:text-secondary-container transition-all duration-300" to="/doctors">
+                Our Doctors
+              </Link>
+              <Link className="font-body-md text-body-md opacity-80 hover:opacity-100 hover:text-secondary-container transition-all duration-300" to="/shop">
+                Boutique
+              </Link>
+              <Link className="font-body-md text-body-md opacity-80 hover:opacity-100 hover:text-secondary-container transition-all duration-300" to="/results">
+                Results
+              </Link>
+            </div>
           </div>
-          <div className="flex flex-col gap-4">
-            <span className="font-label-caps text-label-caps text-primary font-semibold uppercase tracking-widest mb-2">
+
+          <div className="md:col-span-3">
+            <span className="font-label-caps text-label-caps opacity-50 uppercase tracking-widest mb-5 block">
               Legal
             </span>
-            <a
-              className="font-body-md text-body-md text-on-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-container transition-colors duration-300 ease-in-out"
-              href="#"
-            >
-              Privacy Policy
-            </a>
-            <a
-              className="font-body-md text-body-md text-on-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-container transition-colors duration-300 ease-in-out"
-              href="#"
-            >
-              Terms of Service
-            </a>
+            <div className="flex flex-col gap-3">
+              <a className="font-body-md text-body-md opacity-80 hover:opacity-100 hover:text-secondary-container transition-all duration-300" href="#">
+                Privacy Policy
+              </a>
+              <a className="font-body-md text-body-md opacity-80 hover:opacity-100 hover:text-secondary-container transition-all duration-300" href="#">
+                Terms of Service
+              </a>
+            </div>
           </div>
-          <div className="flex flex-col gap-4">
-            <span className="font-label-caps text-label-caps text-primary font-semibold uppercase tracking-widest mb-2">
-              Connect
+
+          <div className="md:col-span-4 md:col-start-9">
+            <span className="font-label-caps text-label-caps opacity-50 uppercase tracking-widest mb-5 block">
+              Get in Touch
             </span>
-            <Link
-              className="font-body-md text-body-md text-on-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-container transition-colors duration-300 ease-in-out"
-              to="/contact"
-            >
-              Contact Us
-            </Link>
-            <a
-              className="font-body-md text-body-md text-on-surface-variant opacity-80 hover:opacity-100 hover:text-secondary-container transition-colors duration-300 ease-in-out"
-              href="#"
-            >
-              Our Location
-            </a>
+            <div className="flex flex-col gap-3">
+              <a className="font-body-md text-body-md opacity-80 hover:opacity-100 hover:text-secondary-container transition-all duration-300" href={BUSINESS.phones[0].href}>
+                {BUSINESS.phones[0].number}
+              </a>
+              <a className="font-body-md text-body-md opacity-80 hover:opacity-100 hover:text-secondary-container transition-all duration-300" href={BUSINESS.phones[1].href}>
+                {BUSINESS.phones[1].number}
+              </a>
+              <span className="font-body-md text-body-md opacity-80">{BUSINESS.address.full}</span>
+              <Link className="font-body-md text-body-md opacity-80 hover:opacity-100 hover:text-secondary-container transition-all duration-300 inline-flex items-center gap-1 group" to="/contact">
+                Contact Us
+                <span className="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </Link>
+            </div>
           </div>
         </div>
 
-        <div className="col-span-1 md:col-span-12 mt-16 pt-8 border-t border-surface-variant text-center md:text-left">
-          <p className="font-body-md text-body-md text-on-surface-variant opacity-80">
-            © 2026 AESTHETICA Medical Clinic. All rights reserved.
+        <div className="pt-8 border-t border-on-primary/15 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+          <p className="font-body-md text-sm opacity-60 max-w-2xl">
+            © {BUSINESS.copyrightYear} {BUSINESS.name}. All rights reserved. Medical disclaimer:{" "}
+            {BUSINESS.medicalDisclaimer}
           </p>
+          <Link
+            to="/admin"
+            className="font-label-caps text-label-caps opacity-40 hover:opacity-100 transition-opacity flex-shrink-0"
+          >
+            Staff Login
+          </Link>
         </div>
       </div>
     </footer>

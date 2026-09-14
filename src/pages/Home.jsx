@@ -1,115 +1,313 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { motion, useReducedMotion } from "framer-motion";
+import BUSINESS from "../data/business";
+import useDbCollection from "../hooks/useDbCollection";
+import { getActiveTreatments } from "../lib/db";
+import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
+import Reveal from "../components/motion/Reveal";
+import StaggeredText from "../components/motion/StaggeredText";
+import MagneticButton from "../components/motion/MagneticButton";
+import Marquee from "../components/motion/Marquee";
+import CountUp from "../components/motion/CountUp";
+import OrganicBlob from "../components/motion/OrganicBlob";
+import HeroVideo from "../components/HeroVideo";
+import SectionHeader from "../components/SectionHeader";
+import CTABand from "../components/CTABand";
+import { useDeclareDarkHero } from "../context/DarkHeroContext";
+
+function TestimonialCarousel({ testimonials }) {
+  const [index, setIndex] = useState(0);
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (testimonials.length < 2) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % testimonials.length), 6000);
+    return () => clearInterval(id);
+  }, [testimonials.length]);
+
+  if (testimonials.length === 0) return null;
+  const t = testimonials[index];
+
+  return (
+    <div className="max-w-3xl mx-auto text-center">
+      <span className="material-symbols-outlined text-secondary-container text-5xl mb-6 inline-block" style={{ fontVariationSettings: "'FILL' 1" }}>
+        format_quote
+      </span>
+      <motion.div key={index} initial={reduceMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}>
+        <div className="flex justify-center text-secondary mb-6">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <span key={i} className="material-symbols-outlined fill text-xl">star</span>
+          ))}
+        </div>
+        <p className="font-display-lg text-headline-md md:text-display-lg text-primary leading-tight mb-8">"{t.quote}"</p>
+        <div className="flex items-center justify-center gap-3">
+          <span className="w-10 h-10 rounded-full bg-primary-fixed/30 text-primary flex items-center justify-center font-label-caps text-label-caps font-bold flex-shrink-0">
+            {t.name.charAt(0)}
+          </span>
+          <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest text-left">
+            {t.name} · {t.source}
+          </p>
+        </div>
+      </motion.div>
+      {testimonials.length > 1 && (
+        <div className="flex justify-center gap-2 mt-10">
+          {testimonials.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIndex(i)}
+              aria-label={`Show testimonial ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all duration-500 active:scale-90 ${i === index ? "w-8 bg-primary" : "w-1.5 bg-outline-variant hover:bg-primary/40"}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
+  const [treatments] = useDbCollection(getActiveTreatments);
+  const reduceMotion = useReducedMotion();
+  useDeclareDarkHero();
+  const featured = treatments.find((t) => t.featured) || treatments[0];
+  const rest = treatments.filter((t) => t.id !== featured?.id);
+
   return (
     <>
- 
+      {/* ---------- HERO - the video is the page. It runs the full width of
+          the viewport and starts immediately; the copy sits on top of it
+          under a scrim rather than beside it in a panel, so nothing crops
+          the footage. ---------- */}
+      <section className="relative isolate -mt-[88px] md:-mt-[104px] flex min-h-[100svh] flex-col justify-end overflow-hidden text-on-primary">
+        <motion.div
+          className="absolute inset-0 -z-20"
+          initial={reduceMotion ? false : { scale: 1.12 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 2.4, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <HeroVideo
+            className="h-full w-full"
+            alt="A clinical skin treatment in progress at Pearl Aesthetics"
+            videoSrc="https://videos.pexels.com/video-files/30365364/13014604_1440_2560_24fps.mp4"
+          />
+        </motion.div>
 
-<section className="relative min-h-[870px] flex items-center px-gutter py-section-padding-mobile md:py-section-padding-desktop">
-<div className="max-w-container-max mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-gutter items-center">
+        {/* Two scrims rather than one: the horizontal pass keeps the type
+            side legible, the vertical pass anchors the copy at the foot and
+            hands off cleanly to the section below. */}
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-primary/95 via-primary/65 to-primary/20" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-t from-primary via-primary/25 to-primary/45" />
 
-<div className="lg:col-span-5 lg:col-start-2 flex flex-col z-10 fade-up">
-<h1 className="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg text-primary mb-6">
-                        Precision Medicine.<br />Boutique Experience.
-                    </h1>
-<p className="font-body-lg text-body-lg text-on-surface-variant mb-10 max-w-lg">
-                        Elevate your natural aesthetic with advanced clinical treatments delivered in a serene, spa-inspired sanctuary. Safety, precision, and artistry combined.
-                    </p>
-<div className="flex flex-col sm:flex-row gap-4">
-<Link className="inline-flex justify-center items-center bg-primary text-on-primary px-8 py-4 rounded hover:bg-primary-container transition-colors hover:scale-[1.02] duration-200 ease-out font-label-caps text-label-caps uppercase tracking-widest" to="/treatments">
-                            Explore Treatments
-                        </Link>
-<Link className="inline-flex justify-center items-center border border-primary text-primary px-8 py-4 rounded hover:bg-surface-container-low transition-colors hover:scale-[1.02] duration-200 ease-out font-label-caps text-label-caps uppercase tracking-widest bg-transparent" to="/book-consultation">
-                            Book Consultation
-                        </Link>
-</div>
-</div>
+        <div className="relative z-10 w-full max-w-container-max mx-auto px-gutter pb-16 pt-32 md:pb-24 md:pt-40">
+          <Reveal delay={0.05}>
+            <span className="font-label-caps text-label-caps text-secondary-container uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
+              <span className="w-10 h-px bg-secondary-container/60" />
+              {BUSINESS.address.line2} · {BUSINESS.address.city}
+            </span>
+          </Reveal>
 
-<div className="lg:col-span-6 mt-12 lg:mt-0 relative fade-up" style={{transitionDelay: "200ms"}}>
-<div className="aspect-[4/5] md:aspect-square rounded overflow-hidden relative" style={{boxShadow: "0 20px 40px rgba(0, 35, 28, 0.08)"}}>
-<img className="object-cover w-full h-full" alt="A luxurious, modern medical clinic interior. The space is serene and minimalist, featuring soft curved walls painted in a calming cream color. Accents of deep forest teal are present in elegant, tactile furnishings. Natural light floods in from a large window, creating soft, diffused shadows. The atmosphere is clinical yet boutique, emphasizing high-end hospitality and meticulous hygiene." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCZ1HLImibcmx1-O0b3cYBDnl_P9CLPKv02QgbVS_SzTTB3y0P1v9oNrWRd9oVRa2JwGXSV9xfPEYsDYiA2RjK4VcO_dw4gi64jyKUeKtb7CBRLOZgqQ89PrQVb2XPO27RNcpaadKSsbTHNCcUIXYtlE7VuZwJSM7rrbDzWn8k0UjAAcMxv4pXxqOxaFxhfsOAZgMlAueUHDEpFye4oOm0X4NiRYBeYl5lJfccyFxg8JZVgRaQFk_N" />
+          <h1
+            className="font-display-lg mb-8 max-w-4xl"
+            style={{ fontSize: "clamp(2.5rem, 6vw, 4.5rem)", lineHeight: 1.05, letterSpacing: "-0.025em" }}
+          >
+            <StaggeredText text={BUSINESS.tagline} startDelay={0.15} wordDelay={0.05} />
+          </h1>
 
-<div className="absolute inset-0 bg-primary/5 mix-blend-multiply pointer-events-none"></div>
-</div>
+          <Reveal delay={0.5}>
+            <p className="font-body-lg text-body-lg text-on-primary/80 mb-12 max-w-xl">{BUSINESS.description}</p>
+          </Reveal>
 
-<div className="absolute -bottom-8 -left-8 w-32 h-32 bg-secondary-container/20 rounded-full blur-2xl -z-10"></div>
-</div>
-</div>
-</section>
+          <Reveal delay={0.62}>
+            <div className="flex flex-col sm:flex-row gap-4 mb-16 sm:w-fit">
+              <MagneticButton>
+                <Link
+                  className="inline-flex justify-center items-center bg-secondary-container text-on-secondary-container px-8 py-4 rounded hover:bg-secondary-fixed transition-colors duration-200 ease-out font-label-caps text-label-caps uppercase tracking-widest w-full"
+                  to="/book-consultation"
+                >
+                  Book Your Consultation
+                </Link>
+              </MagneticButton>
+              <MagneticButton>
+                <Link
+                  className="inline-flex justify-center items-center border border-on-primary/40 text-on-primary px-8 py-4 rounded hover:bg-on-primary/10 transition-colors duration-200 ease-out font-label-caps text-label-caps uppercase tracking-widest bg-transparent w-full backdrop-blur-sm"
+                  to="/treatments"
+                >
+                  Explore Treatments
+                </Link>
+              </MagneticButton>
+            </div>
+          </Reveal>
 
-<section className="bg-surface-container-low py-16 px-gutter border-t border-b border-surface-container-high/50">
-<div className="max-w-container-max mx-auto text-center fade-up">
-<h3 className="font-label-caps text-label-caps text-on-surface-variant mb-8 uppercase tracking-[0.2em]">Excellence in Clinical Practice</h3>
-<div className="flex flex-wrap justify-center gap-12 md:gap-24 items-center opacity-80 grayscale hover:grayscale-0 transition-all duration-500">
-<div className="flex items-center gap-3">
-<span className="material-symbols-outlined text-3xl text-primary" data-icon="medical_services">medical_services</span>
-<span className="font-body-md text-body-md text-primary font-medium">Board Certified</span>
-</div>
-<div className="flex items-center gap-3">
-<span className="material-symbols-outlined text-3xl text-primary" data-icon="science">science</span>
-<span className="font-body-md text-body-md text-primary font-medium">FDA Approved</span>
-</div>
-<div className="flex items-center gap-3">
-<span className="material-symbols-outlined text-3xl text-primary" data-icon="hotel_class">hotel_class</span>
-<span className="font-body-md text-body-md text-primary font-medium">Award Winning</span>
-</div>
-<div className="flex items-center gap-3">
-<span className="material-symbols-outlined text-3xl text-primary" data-icon="verified_user">verified_user</span>
-<span className="font-body-md text-body-md text-primary font-medium">Licensed Practice</span>
-</div>
-</div>
-</div>
-</section>
+          <Reveal delay={0.75}>
+            <div className="flex flex-wrap gap-x-14 gap-y-6 pt-10 border-t border-on-primary/20">
+              {BUSINESS.stats.map((stat) => (
+                <div key={stat.label}>
+                  <p className="font-display-lg text-3xl leading-none mb-2 text-secondary-container">
+                    <CountUp value={stat.value} />
+                  </p>
+                  <p className="font-label-caps text-label-caps text-on-primary/65">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </section>
 
-<section className="py-section-padding-mobile md:py-section-padding-desktop px-gutter relative" id="treatments">
-<div className="max-w-container-max mx-auto">
-<div className="flex flex-col md:flex-row md:items-end justify-between mb-16 fade-up">
-<div className="max-w-xl">
-<span className="font-label-caps text-label-caps text-primary uppercase tracking-widest mb-4 block">Our Expertise</span>
-<h2 className="font-headline-sm text-headline-sm md:font-headline-md md:text-headline-md text-primary">Curated Treatments</h2>
-</div>
-<Link className="mt-6 md:mt-0 inline-flex items-center gap-2 text-primary hover:text-surface-tint transition-colors font-label-caps text-label-caps uppercase tracking-widest group" to="/treatment-menu">
-                        View Full Menu
-                        <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
-</Link>
-</div>
+      <div className="max-w-container-max mx-auto px-gutter">
+        <SupabaseSetupNotice className="mt-8" />
+      </div>
 
-<div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+      {/* ---------- STATEMENT - a quiet, confident full-bleed line, not a
+          decorated block. Generous whitespace does the work. ---------- */}
+      <section className="bg-background py-28 md:py-40 px-gutter">
+        <Reveal className="max-w-3xl mx-auto text-center" as="div">
+          <p
+            className="font-display-lg text-primary"
+            style={{ fontSize: "clamp(1.75rem, 3.5vw, 2.75rem)", lineHeight: 1.3, letterSpacing: "-0.01em" }}
+          >
+            Aesthetic medicine should feel effortless — and be genuinely safe.
+          </p>
+          <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-[0.3em] mt-10">
+            The Pearl Philosophy
+          </p>
+        </Reveal>
+      </section>
 
-<div className="md:col-span-7 group cursor-pointer fade-up">
-<div className="relative aspect-[4/3] rounded overflow-hidden mb-6 bg-surface-container">
-<img className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" alt="A close-up, artistic shot of crystal clear water droplets resting on glowing, healthy skin, symbolizing deep dermal hydration. The lighting is soft, natural, and high-key, illuminating the skin's texture in a flattering way. The color palette features soft creams, gentle peach tones, and hints of refreshing aqua. The mood is pure, revitalizing, and medically pristine." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYMFa-ElAk_5OrgwIvwNGkZvWqTX0YsSNfc7awggAQSDButGERM_xgtLTn-G9O0w84lQLHxGhQX4cNnrBSdNFlz7w50hWS3ZyayEr2D3CzELJWwBwNpHGdx0UerOYq_4bsm4g5tU02HIMZ0-ECUyIhaUCmXcwxWIpMJncRWc3OMyJQN8sNXMd8lR5yYN3MFA5CTI3u3nvQAKY103vDkvkzJMXafQb5eC5Ha1o3m1g2-ot6NIXD3gA6" />
-<div className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-</div>
-<h3 className="font-headline-sm text-headline-sm text-primary mb-2">Dermal Hydration</h3>
-<p className="font-body-md text-body-md text-on-surface-variant max-w-md">Deep tissue revitalization using advanced hyaluronic formulations to restore volume and luminous quality to the skin.</p>
-</div>
+      {/* ---------- CERTIFICATIONS - a slow, continuous ticker rather than a
+          static row. The credentials still speak for themselves; the
+          motion just keeps this band from reading as a dead stretch
+          between two much louder sections. ---------- */}
+      <section className="bg-surface-container-low py-16 border-t border-b border-surface-container-high/50 overflow-hidden">
+        <Reveal className="text-center mb-10 px-gutter" as="div">
+          <h3 className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-[0.2em]">
+            Excellence in Clinical Practice
+          </h3>
+        </Reveal>
+        <Marquee duration={26}>
+          {BUSINESS.certifications.map((cert) => (
+            <div key={cert} className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-2xl text-primary">verified</span>
+              <span className="font-body-md text-body-md text-primary font-medium whitespace-nowrap">{cert}</span>
+            </div>
+          ))}
+        </Marquee>
+      </section>
 
-<div className="md:col-span-5 flex flex-col gap-gutter">
+      {/* ---------- TREATMENTS - editorial layout, not a uniform grid ---------- */}
+      <section className="py-section-padding-mobile md:py-section-padding-desktop px-gutter relative isolate" id="treatments">
+        <div className="max-w-container-max mx-auto">
+          <SectionHeader
+            eyebrow="Aesthetic & Medical Services"
+            title="From Injectables to General Medicine — All in One Clinic"
+            linkTo="/treatment-menu"
+            linkLabel="View Full Menu"
+          />
 
-<div className="group cursor-pointer fade-up" style={{transitionDelay: "150ms"}}>
-<div className="relative aspect-video rounded overflow-hidden mb-6 bg-surface-container">
-<img className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" alt="An abstract, minimalist conceptual image representing structural contouring. It features elegant, smooth geometric shapes intersecting precisely, created in materials like matte ceramic and brushed brass. The lighting highlights sharp, defining edges and smooth surfaces, conveying precision and refined architecture. The background is a stark, clean cream color." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIuIiFme3s9pIgzI__CZLAZnOKfudg_zTVQwM2b5yMCawCrtJiERG67rutqP5jOgVkeyGg-ya5G8U4YT9aWL6KGj5Q4t1fC7pJPs5NXV1thG-ZD9giicG9ypfN35XlQFsZK6xkruQpStqLE4_9Vqui99sTw9AGYAdeoSJ8J1vnoeJmHV_WiOqpnSaN9gbhfsQBhQxF3dc2wkxfTNTPVFFh3AJe6on20w5Huuszmf6icM2dIKBqaDau" />
-</div>
-<h3 className="font-headline-sm text-headline-sm text-primary mb-2">Structural Contouring</h3>
-<p className="font-body-md text-body-md text-on-surface-variant">Strategic dermal enhancements designed to define jawlines, elevate cheekbones, and restore youthful architecture.</p>
-</div>
+          {featured && (
+            <Reveal delay={0.05}>
+              <Link
+                to="/treatment-menu"
+                className="group relative flex flex-col md:flex-row items-stretch bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden mb-8 hover:shadow-2xl hover:shadow-primary/10 transition-shadow duration-500"
+              >
+                <div className="md:w-1/2 aspect-[16/10] md:aspect-auto overflow-hidden relative">
+                  {featured.image && (
+                    <img
+                      src={featured.image}
+                      alt={featured.name}
+                      className="w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/30 md:bg-gradient-to-r md:from-transparent md:to-surface-container-lowest/0" />
+                </div>
+                <div className="md:w-1/2 p-10 md:p-14 flex flex-col justify-center">
+                  <span className="font-label-caps text-label-caps text-secondary uppercase tracking-widest mb-4">Signature Treatment</span>
+                  <h3 className="font-headline-md text-headline-md text-primary mb-4">{featured.name}</h3>
+                  <p className="font-body-lg text-body-lg text-on-surface-variant mb-8">{featured.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="font-body-md text-body-md text-primary font-medium">
+                      {featured.priceLabel || `From AED ${featured.priceFrom}`}
+                    </span>
+                    <span className="material-symbols-outlined text-primary group-hover:translate-x-1 transition-transform">
+                      arrow_forward
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            </Reveal>
+          )}
 
-<div className="group cursor-pointer fade-up" style={{transitionDelay: "300ms"}}>
-<div className="relative aspect-video rounded overflow-hidden mb-6 bg-surface-container">
-<img className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" alt="A macro photography shot of delicate, glowing organic structures resembling cellular renewal or botanical growth, shot through a microscope lens aesthetic. The tones are soft teals, warm creams, and pale golds. The lighting is ethereal and diffuse, emphasizing rejuvenation, microscopic precision, and natural healing processes within a clinical context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1vUC8Rhbot_u4MD6BZXOFmMX5A6v4S0SVuxs-i-Ezv1_Zh7FwuxoAlppzVdLOqZWmEDVCDXUB44Li4hJ3c7SBsbcYeTz40yQ9-Xdx8auZMAaPZljxGimr9YFfsgElaVjGHZACLMFXUgMFk-q8P651BtQa-0tp4TBFRLcDTF4yZDzXy30YxCWNZQ-SWC85J1SHiKC1HOwj4wZCZAe-fmoYYNTT1k-SBKkvS9-gy_rc7NF0uEvJLiZ_" />
-</div>
-<h3 className="font-headline-sm text-headline-sm text-primary mb-2">Cellular Renewal</h3>
-<p className="font-body-md text-body-md text-on-surface-variant">Collagen-stimulating therapies utilizing energy-based devices and bio-stimulators to refine texture and tone.</p>
-</div>
-</div>
-</div>
-</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
+            {rest.map((t, i) => (
+              <Reveal key={t.id} delay={0.08 * (i % 3)}>
+                <Link
+                  to="/treatment-menu"
+                  className="group relative flex flex-col bg-surface-container-lowest border border-outline-variant/30 rounded-xl overflow-hidden hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 h-full"
+                >
+                  <div className="aspect-[4/3] overflow-hidden relative">
+                    {t.image && (
+                      <img
+                        src={t.image}
+                        alt={t.name}
+                        className="w-full h-full object-cover transition-transform duration-[1000ms] ease-out group-hover:scale-105"
+                      />
+                    )}
+                    <div className="absolute top-4 left-4 w-11 h-11 rounded-full bg-surface/90 backdrop-blur flex items-center justify-center text-primary">
+                      <span className="material-symbols-outlined text-xl">{t.icon}</span>
+                    </div>
+                  </div>
+                  <div className="p-6 flex flex-col flex-grow">
+                    <h3 className="font-headline-sm text-headline-sm text-primary mb-2">{t.name}</h3>
+                    <p className="font-body-md text-body-md text-on-surface-variant mb-6 flex-grow">{t.description}</p>
+                    <span className="font-label-caps text-label-caps text-secondary uppercase tracking-widest">
+                      {t.priceLabel || `from AED ${t.priceFrom}`}
+                    </span>
+                  </div>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
 
-<div className="absolute top-1/2 right-0 w-96 h-96 bg-primary-fixed/30 rounded-full blur-[100px] -z-10 pointer-events-none translate-x-1/2 -translate-y-1/2"></div>
-</section>
+      {/* ---------- DIFFERENTIATORS ---------- */}
+      <section className="py-section-padding-mobile md:py-section-padding-desktop px-gutter bg-surface-container-low">
+        <div className="max-w-container-max mx-auto grid grid-cols-1 md:grid-cols-12 gap-gutter md:gap-16">
+          <div className="md:col-span-5 md:sticky md:top-32 md:self-start">
+            <SectionHeader
+              eyebrow="The Pearl Difference"
+              title="Luxury Care, Grounded in Real Medicine"
+              className="mb-0"
+            />
+          </div>
+          <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-12">
+            {BUSINESS.differentiators.map((d, i) => (
+              <Reveal key={d.title} delay={0.08 * i}>
+                <span className="font-display-lg text-primary/25 text-4xl block mb-3 leading-none">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <h3 className="font-body-lg text-body-lg text-primary font-medium mb-2">{d.title}</h3>
+                <p className="font-body-md text-body-md text-on-surface-variant">{d.description}</p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
 
+      {/* ---------- TESTIMONIALS - single rotating editorial quote ---------- */}
+      <section className="relative py-section-padding-mobile md:py-section-padding-desktop px-gutter overflow-hidden">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[32rem] h-[32rem] opacity-[0.05] blur-3xl pointer-events-none" aria-hidden="true">
+          <OrganicBlob colorFrom="#0e3a30" colorTo="#fed65b" />
+        </div>
+        <div className="relative max-w-container-max mx-auto">
+          <SectionHeader eyebrow="Patient Stories" title="Loved by Our Patients" align="center" />
+          <Reveal delay={0.1} as="div">
+            <TestimonialCarousel testimonials={BUSINESS.testimonials} />
+          </Reveal>
+        </div>
+      </section>
 
+      <CTABand />
     </>
   );
 }

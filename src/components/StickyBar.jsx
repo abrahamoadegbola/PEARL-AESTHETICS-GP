@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { buildWhatsAppLink, generalInquiryMessage } from "../lib/whatsapp";
 
 export default function StickyBar() {
   return (
@@ -8,7 +9,7 @@ export default function StickyBar() {
     >
       <a
         className="flex items-center gap-2 text-primary font-label-caps text-label-caps uppercase tracking-wider"
-        href="https://wa.me/"
+        href={buildWhatsAppLink(generalInquiryMessage())}
         target="_blank"
         rel="noreferrer"
       >
@@ -19,7 +20,7 @@ export default function StickyBar() {
         className="bg-secondary-container text-on-secondary-container px-6 py-3 rounded font-label-caps text-label-caps uppercase tracking-widest hover:bg-secondary-fixed transition-colors"
         to="/book-consultation"
       >
-        Book Treatment
+        Book Appointment
       </Link>
     </div>
   );
