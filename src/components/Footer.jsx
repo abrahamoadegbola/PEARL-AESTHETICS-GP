@@ -4,7 +4,7 @@ import Reveal from "./motion/Reveal";
 
 export default function Footer() {
   return (
-    <footer className="w-full bg-primary text-on-primary pt-section-padding-desktop pb-24 md:pb-section-padding-desktop mt-auto">
+    <footer className="w-full bg-navy text-on-navy pt-section-padding-desktop pb-24 md:pb-section-padding-desktop mt-auto">
       <div className="max-w-container-max mx-auto px-gutter">
         <Reveal className="mb-20 max-w-2xl" as="div">
           <span className="font-label-caps text-label-caps uppercase tracking-[0.25em] opacity-60 mb-4 block">
@@ -71,7 +71,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-on-primary/15 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+        <div className="pt-8 border-t border-on-navy/15 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
           <p className="font-body-md text-sm opacity-60 max-w-2xl">
             © {BUSINESS.copyrightYear} {BUSINESS.name}. All rights reserved. Medical disclaimer:{" "}
             {BUSINESS.medicalDisclaimer}

@@ -4,61 +4,92 @@ export default {
   darkMode: "class",
   theme: {
     extend: {
+      // Every value below was read out of a real reference site's own
+      // compiled stylesheet (its :root custom properties, converted from
+      // HSL to hex) rather than guessed from a screenshot description -
+      // teal as the one dominant accent, navy as a second deep accent,
+      // warm cream surfaces, champagne gold for small highlights, and a
+      // charcoal (not black, not brand-coloured) ink. The token *names*
+      // below are unchanged from Pearl's original Material-3-flavoured
+      // system so no component needs editing - only what each name
+      // resolves to changes, which is what makes this a sitewide fix
+      // rather than a Home-page-only one.
       colors: {
         error: "#ba1a1a",
-        "secondary-container": "#fed65b",
-        "on-primary-container": "#7aa497",
-        "on-primary-fixed": "#002019",
-        "on-secondary": "#ffffff",
-        "on-secondary-container": "#745c00",
-        "inverse-on-surface": "#f0f1ef",
-        "on-tertiary-fixed": "#32120b",
-        primary: "#0e3a30",
-        "on-secondary-fixed-variant": "#574500",
-        background: "#f9f9f7",
-        "surface-dim": "#d9dad8",
-        "secondary-fixed-dim": "#e9c349",
-        "tertiary-fixed-dim": "#f4b8ac",
-        "surface-container-low": "#f3f4f1",
-        "on-tertiary": "#ffffff",
-        "tertiary-fixed": "#ffdad3",
-        secondary: "#735c00",
-        "on-secondary-fixed": "#241a00",
-        "inverse-surface": "#2f3130",
-        "primary-fixed-dim": "#a4d0c1",
-        "surface-container-lowest": "#ffffff",
-        tertiary: "#36150e",
-        "surface-container-highest": "#e2e3e0",
-        "secondary-fixed": "#ffe088",
         "error-container": "#ffdad6",
         "on-error": "#ffffff",
-        outline: "#717975",
-        "outline-variant": "#c0c8c4",
-        "on-primary": "#ffffff",
-        "surface-variant": "#e2e3e0",
-        "on-surface": "#1a1c1b",
-        "tertiary-container": "#4f2921",
-        "on-surface-variant": "#414845",
-        surface: "#f9f9f7",
-        "surface-tint": "#3d665a",
-        "inverse-primary": "#a4d0c1",
-        "surface-container-high": "#e8e8e6",
-        "primary-fixed": "#bfecdd",
-        "on-tertiary-fixed-variant": "#663c33",
-        "primary-container": "#092a22",
-        "surface-bright": "#f9f9f7",
-        "on-background": "#1a1c1b",
-        "on-tertiary-container": "#c58f83",
-        "surface-container": "#eeeeec",
-        "on-primary-fixed-variant": "#254e43",
         "on-error-container": "#93000a",
+
+        // Teal - the site's one dominant accent (their --primary AND
+        // --accent are the same teal), used for every CTA, link, active
+        // state and icon.
+        primary: "#39b3b9",
+        "on-primary": "#ffffff",
+        "primary-container": "#2b8a8f",
+        "on-primary-container": "#ffffff",
+        "primary-fixed": "#d7f1f2",
+        "primary-fixed-dim": "#8fd6da",
+        "on-primary-fixed": "#01333a",
+        "on-primary-fixed-variant": "#0d5c62",
+        "inverse-primary": "#8fd6da",
+
+        // Champagne gold - a second, smaller accent for labels, icons and
+        // premium-feeling highlights, kept separate from the teal CTAs.
+        secondary: "#b6970c",
+        "secondary-container": "#39b3b9",
+        "on-secondary": "#ffffff",
+        "on-secondary-container": "#ffffff",
+        "secondary-fixed": "#2b8a8f",
+        "secondary-fixed-dim": "#f0dfa0",
+        "on-secondary-fixed": "#4a3d05",
+        "on-secondary-fixed-variant": "#8a7209",
+
+        // Rarely used in this codebase; kept as a muted warm-brown family
+        // rather than the old reddish tertiary, so it never clashes if it
+        // does surface somewhere.
+        tertiary: "#6b5a3d",
+        "tertiary-container": "#f0e6d2",
+        "on-tertiary": "#ffffff",
+        "on-tertiary-container": "#6b5a3d",
+        "tertiary-fixed": "#f0e6d2",
+        "tertiary-fixed-dim": "#d9c7a3",
+        "on-tertiary-fixed": "#3a2f1a",
+        "on-tertiary-fixed-variant": "#5c4c30",
+
+        // Warm cream/white surfaces, stepping slightly deeper each level -
+        // reads as soft and boutique instead of the old cooler grey-greens.
+        background: "#ffffff",
+        "on-background": "#404040",
+        surface: "#ffffff",
+        "surface-bright": "#ffffff",
+        "on-surface": "#404040",
+        "surface-variant": "#f2ebe3",
+        "on-surface-variant": "#5c5650",
+        "surface-dim": "#e6e0da",
+        "surface-container-lowest": "#ffffff",
+        "surface-container-low": "#f7f3ee",
+        "surface-container": "#f2ebe3",
+        "surface-container-high": "#ede1d1",
+        "surface-container-highest": "#e6d7c2",
+        "surface-tint": "#39b3b9",
+        outline: "#8a8178",
+        "outline-variant": "#e6e0da",
+        "inverse-surface": "#3a3630",
+        "inverse-on-surface": "#f7f3ee",
+
+        // A second deep accent (separate from the teal) for hero photo
+        // scrims and any spot that wants real weight/contrast rather than
+        // the brighter teal.
+        navy: "#01445e",
+        "navy-dark": "#012f42",
+        "on-navy": "#ffffff",
       },
       borderRadius: {
-        DEFAULT: "0.25rem",
-        sm: "0.125rem",
-        md: "0.375rem",
-        lg: "0.5rem",
-        xl: "0.75rem",
+        DEFAULT: "0.875rem",
+        sm: "0.5rem",
+        md: "0.75rem",
+        lg: "1rem",
+        xl: "1.25rem",
         full: "9999px",
       },
       spacing: {
@@ -71,16 +102,19 @@ export default {
       maxWidth: {
         "container-max": "1200px",
       },
+      // Montserrat, for both display and body - the reference site's own
+      // --font-display and --font-body both resolve to the same family,
+      // so this system does too, rather than pairing two different fonts.
       fontFamily: {
-        "display-lg-mobile": ["Fraunces", "serif"],
-        "body-lg": ["Hanken Grotesk", "sans-serif"],
-        "body-md": ["Hanken Grotesk", "sans-serif"],
-        "display-lg": ["Fraunces", "serif"],
-        "label-caps": ["Hanken Grotesk", "sans-serif"],
-        "headline-sm": ["Fraunces", "serif"],
-        "headline-md": ["Fraunces", "serif"],
-        display: ["Fraunces", "serif"],
-        body: ["Hanken Grotesk", "sans-serif"],
+        "display-lg-mobile": ["Montserrat", "sans-serif"],
+        "body-lg": ["Montserrat", "sans-serif"],
+        "body-md": ["Montserrat", "sans-serif"],
+        "display-lg": ["Montserrat", "sans-serif"],
+        "label-caps": ["Montserrat", "sans-serif"],
+        "headline-sm": ["Montserrat", "sans-serif"],
+        "headline-md": ["Montserrat", "sans-serif"],
+        display: ["Montserrat", "sans-serif"],
+        body: ["Montserrat", "sans-serif"],
       },
       fontSize: {
         "display-lg-mobile": ["32px", { lineHeight: "1.2", fontWeight: "600" }],
