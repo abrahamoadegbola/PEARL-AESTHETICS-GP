@@ -187,7 +187,7 @@ export default function DoctorProfile() {
                   is booked in.
                 </p>
                 <Link
-                  to="/book-consultation"
+                  to={`/book-consultation?doctor=${encodeURIComponent(doctor.id)}`}
                   className="w-full inline-flex justify-center items-center bg-secondary-container text-on-secondary-container py-4 rounded font-label-caps text-label-caps uppercase tracking-widest hover:bg-secondary-fixed transition-colors"
                 >
                   Book Consultation

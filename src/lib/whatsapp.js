@@ -13,6 +13,7 @@ export function bookingWhatsAppMessage(booking) {
   return [
     `Hi ${BUSINESS.shortName}, I'd like to confirm a consultation booking:`,
     `• Category: ${booking.category}`,
+    booking.doctor ? `• Doctor: ${booking.doctor}` : null,
     `• Preferred date: ${booking.date}`,
     `• Preferred time: ${booking.time}`,
     `• Name: ${booking.name}`,

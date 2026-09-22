@@ -272,6 +272,7 @@ export async function addBooking(booking) {
     id,
     status: "pending",
     category: booking.category,
+    doctor: booking.doctor || null,
     date: booking.date,
     time: booking.time,
     name: booking.name,

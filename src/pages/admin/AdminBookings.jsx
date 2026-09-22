@@ -46,6 +46,7 @@ export default function AdminBookings() {
               <tr className="text-left border-b border-outline-variant/30 font-label-caps text-label-caps text-outline uppercase">
                 <th className="px-4 py-3">Client</th>
                 <th className="px-4 py-3">Category</th>
+                <th className="px-4 py-3">Doctor</th>
                 <th className="px-4 py-3">Date / Time</th>
                 <th className="px-4 py-3">Contact</th>
                 <th className="px-4 py-3">Status</th>
@@ -60,6 +61,7 @@ export default function AdminBookings() {
                     <p className="text-xs text-on-surface-variant">{b.id}</p>
                   </td>
                   <td className="px-4 py-3 text-on-surface-variant">{b.category}</td>
+                  <td className="px-4 py-3 text-on-surface-variant">{b.doctor || "—"}</td>
                   <td className="px-4 py-3 text-on-surface-variant">
                     {b.date} {b.time}
                   </td>

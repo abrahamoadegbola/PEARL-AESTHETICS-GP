@@ -56,6 +56,12 @@ create table if not exists public.treatments (
 create table if not exists public.bookings (
   id text primary key default ('bk-' || substr(md5(random()::text), 1, 12)),
   category text not null,
+  -- Set when the booking started from a specific doctor's profile page
+  -- ("Book with Dr. X"), left null for a general booking with no
+  -- particular doctor requested. Stores the doctor's display name (not
+  -- their src/data/doctors.js id), since that id isn't a stable foreign
+  -- key here - doctors are static marketing content, not a DB table.
+  doctor text,
   date text,
   time text,
   name text not null,
@@ -66,6 +72,9 @@ create table if not exists public.bookings (
     check (status in ('pending', 'confirmed', 'completed', 'cancelled')),
   created_at timestamptz not null default now()
 );
+-- Safe to re-run against a database that already has the bookings table
+-- from before the `doctor` column existed.
+alter table public.bookings add column if not exists doctor text;
 
 -- ============================================================
 -- ORDERS (shop checkout)

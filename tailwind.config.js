@@ -4,84 +4,80 @@ export default {
   darkMode: "class",
   theme: {
     extend: {
-      // Every value below was read out of a real reference site's own
-      // compiled stylesheet (its :root custom properties, converted from
-      // HSL to hex) rather than guessed from a screenshot description -
-      // teal as the one dominant accent, navy as a second deep accent,
-      // warm cream surfaces, champagne gold for small highlights, and a
-      // charcoal (not black, not brand-coloured) ink. The token *names*
-      // below are unchanged from Pearl's original Material-3-flavoured
-      // system so no component needs editing - only what each name
-      // resolves to changes, which is what makes this a sitewide fix
-      // rather than a Home-page-only one.
+      // Pearl's actual brand colours - deep forest green as the one
+      // dominant accent (CTAs, links, active states, icons), bright gold
+      // as the second accent, on cool off-white surfaces. The teal/navy
+      // system from the last pass is gone; everything else that pass
+      // built - Montserrat, the rounder corners, the glass nav, the hero
+      // layering, the poster-slide reveal - stays exactly as it was,
+      // since only what these token *names* resolve to changes here, not
+      // which components use them.
       colors: {
         error: "#ba1a1a",
         "error-container": "#ffdad6",
         "on-error": "#ffffff",
         "on-error-container": "#93000a",
 
-        // Teal - the site's one dominant accent (their --primary AND
-        // --accent are the same teal), used for every CTA, link, active
-        // state and icon.
-        primary: "#39b3b9",
+        // Forest green - the site's one dominant accent: every CTA, link,
+        // active nav state and icon.
+        primary: "#0e3a30",
         "on-primary": "#ffffff",
-        "primary-container": "#2b8a8f",
-        "on-primary-container": "#ffffff",
-        "primary-fixed": "#d7f1f2",
-        "primary-fixed-dim": "#8fd6da",
-        "on-primary-fixed": "#01333a",
-        "on-primary-fixed-variant": "#0d5c62",
-        "inverse-primary": "#8fd6da",
+        "primary-container": "#092a22",
+        "on-primary-container": "#7aa497",
+        "primary-fixed": "#bfecdd",
+        "primary-fixed-dim": "#a4d0c1",
+        "on-primary-fixed": "#002019",
+        "on-primary-fixed-variant": "#254e43",
+        "inverse-primary": "#a4d0c1",
 
-        // Champagne gold - a second, smaller accent for labels, icons and
-        // premium-feeling highlights, kept separate from the teal CTAs.
-        secondary: "#b6970c",
-        "secondary-container": "#39b3b9",
+        // Gold - the second accent, used for the bright filled CTA
+        // buttons sitewide (via secondary-container) and for smaller
+        // label/icon highlights (via secondary).
+        secondary: "#8a6d00",
+        "secondary-container": "#fed65b",
         "on-secondary": "#ffffff",
-        "on-secondary-container": "#ffffff",
-        "secondary-fixed": "#2b8a8f",
-        "secondary-fixed-dim": "#f0dfa0",
-        "on-secondary-fixed": "#4a3d05",
-        "on-secondary-fixed-variant": "#8a7209",
+        "on-secondary-container": "#745c00",
+        "secondary-fixed": "#ffe088",
+        "secondary-fixed-dim": "#e9c349",
+        "on-secondary-fixed": "#241a00",
+        "on-secondary-fixed-variant": "#574500",
 
-        // Rarely used in this codebase; kept as a muted warm-brown family
-        // rather than the old reddish tertiary, so it never clashes if it
-        // does surface somewhere.
-        tertiary: "#6b5a3d",
-        "tertiary-container": "#f0e6d2",
+        // Rarely used in this codebase; a muted warm-brown family so it
+        // never clashes if it does surface somewhere.
+        tertiary: "#36150e",
+        "tertiary-container": "#4f2921",
         "on-tertiary": "#ffffff",
-        "on-tertiary-container": "#6b5a3d",
-        "tertiary-fixed": "#f0e6d2",
-        "tertiary-fixed-dim": "#d9c7a3",
-        "on-tertiary-fixed": "#3a2f1a",
-        "on-tertiary-fixed-variant": "#5c4c30",
+        "on-tertiary-container": "#c58f83",
+        "tertiary-fixed": "#ffdad3",
+        "tertiary-fixed-dim": "#f4b8ac",
+        "on-tertiary-fixed": "#32120b",
+        "on-tertiary-fixed-variant": "#663c33",
 
-        // Warm cream/white surfaces, stepping slightly deeper each level -
-        // reads as soft and boutique instead of the old cooler grey-greens.
-        background: "#ffffff",
-        "on-background": "#404040",
-        surface: "#ffffff",
-        "surface-bright": "#ffffff",
-        "on-surface": "#404040",
-        "surface-variant": "#f2ebe3",
-        "on-surface-variant": "#5c5650",
-        "surface-dim": "#e6e0da",
+        // Cool off-white surfaces, stepping slightly deeper each level.
+        background: "#f9f9f7",
+        "on-background": "#1a1c1b",
+        surface: "#f9f9f7",
+        "surface-bright": "#f9f9f7",
+        "on-surface": "#1a1c1b",
+        "surface-variant": "#e2e3e0",
+        "on-surface-variant": "#414845",
+        "surface-dim": "#d9dad8",
         "surface-container-lowest": "#ffffff",
-        "surface-container-low": "#f7f3ee",
-        "surface-container": "#f2ebe3",
-        "surface-container-high": "#ede1d1",
-        "surface-container-highest": "#e6d7c2",
-        "surface-tint": "#39b3b9",
-        outline: "#8a8178",
-        "outline-variant": "#e6e0da",
-        "inverse-surface": "#3a3630",
-        "inverse-on-surface": "#f7f3ee",
+        "surface-container-low": "#f3f4f1",
+        "surface-container": "#eeeeec",
+        "surface-container-high": "#e8e8e6",
+        "surface-container-highest": "#e2e3e0",
+        "surface-tint": "#3d665a",
+        outline: "#717975",
+        "outline-variant": "#c0c8c4",
+        "inverse-surface": "#2f3130",
+        "inverse-on-surface": "#f0f1ef",
 
-        // A second deep accent (separate from the teal) for hero photo
-        // scrims and any spot that wants real weight/contrast rather than
-        // the brighter teal.
-        navy: "#01445e",
-        "navy-dark": "#012f42",
+        // A second deep accent (darker than primary) for hero photo scrims
+        // and the footer - somewhere between primary and true black, so
+        // those larger dark areas read as richer than a flat primary fill.
+        navy: "#0a2b23",
+        "navy-dark": "#051912",
         "on-navy": "#ffffff",
       },
       borderRadius: {

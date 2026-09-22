@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { addBooking } from "../lib/db";
 import Reveal from "../components/motion/Reveal";
 import { buildWhatsAppLink, bookingWhatsAppMessage } from "../lib/whatsapp";
 import { sendBookingEmail } from "../lib/api";
 import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
+import DOCTORS from "../data/doctors";
 
 const CATEGORIES = [
   {
@@ -47,6 +48,13 @@ const initialDetails = { date: "", time: "", name: "", email: "", phone: "", not
 const STEP_TRANSITION = { duration: 0.4, ease: [0.16, 1, 0.3, 1] };
 
 export default function BookConsultation() {
+  const [searchParams] = useSearchParams();
+  const requestedDoctorId = searchParams.get("doctor");
+  // Set only when arriving from a specific doctor's "Book Consultation"
+  // button (e.g. /book-consultation?doctor=hamid-balogun) - a plain visit
+  // to this page has no doctor preselected, and stays a general booking.
+  const requestedDoctor = requestedDoctorId ? DOCTORS.find((d) => d.id === requestedDoctorId) : null;
+
   const [step, setStep] = useState(1);
   const reduceMotion = useReducedMotion();
   const stepMotion = reduceMotion
@@ -78,6 +86,7 @@ export default function BookConsultation() {
     try {
       const record = await addBooking({
         category: category.title,
+        doctor: requestedDoctor?.name,
         date: details.date,
         time: details.time,
         name: details.name,
@@ -110,11 +119,30 @@ export default function BookConsultation() {
           Step {Math.min(step, 3)} of 3 — {stepLabel}
         </span>
         <h1
-          className="font-display-lg text-primary mb-9"
+          className="font-display-lg text-primary mb-5"
           style={{ fontSize: "clamp(2.25rem, 4.5vw, 3.5rem)", lineHeight: 1.08, letterSpacing: "-0.02em" }}
         >
           Book a consultation
         </h1>
+        {requestedDoctor && (
+          <div className="inline-flex items-center gap-3 mb-7 pl-2 pr-4 py-2 rounded-full bg-surface-container-low border border-outline-variant/40">
+            <img
+              src={requestedDoctor.cardImage}
+              alt=""
+              aria-hidden="true"
+              className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+            />
+            <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest">
+              Booking with {requestedDoctor.name}
+            </span>
+            <Link
+              to="/book-consultation"
+              className="font-label-caps text-label-caps text-on-surface-variant hover:text-primary underline underline-offset-2"
+            >
+              Change
+            </Link>
+          </div>
+        )}
         <div
           className="w-full h-1 bg-surface-container-high rounded-full overflow-hidden mb-9"
           role="progressbar"
@@ -309,6 +337,12 @@ export default function BookConsultation() {
               <dt className="text-on-surface-variant">Category</dt>
               <dd className="text-primary font-medium">{category.title}</dd>
             </div>
+            {requestedDoctor && (
+              <div className="flex justify-between border-b border-outline-variant/30 pb-3">
+                <dt className="text-on-surface-variant">Doctor</dt>
+                <dd className="text-primary font-medium">{requestedDoctor.name}</dd>
+              </div>
+            )}
             <div className="flex justify-between border-b border-outline-variant/30 pb-3">
               <dt className="text-on-surface-variant">Date</dt>
               <dd className="text-primary font-medium">{details.date}</dd>
@@ -360,9 +394,10 @@ export default function BookConsultation() {
           </span>
           <h2 className="font-headline-md text-headline-md text-primary">Booking Received</h2>
           <p className="font-body-md text-body-md text-on-surface-variant">
-            Thank you, {booking.name}. Your request for {booking.category} on {booking.date} at{" "}
-            {booking.time} has been received (Ref: {booking.id}). Our team will confirm shortly — for
-            the fastest confirmation, message us on WhatsApp now.
+            Thank you, {booking.name}. Your request for {booking.category}
+            {booking.doctor ? ` with ${booking.doctor}` : ""} on {booking.date} at {booking.time} has been
+            received (Ref: {booking.id}). Our team will confirm shortly — for the fastest confirmation,
+            message us on WhatsApp now.
           </p>
           {emailStatus === "sending" && (
             <p className="text-xs text-on-surface-variant">Sending confirmation email…</p>

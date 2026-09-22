@@ -71,17 +71,11 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="pt-8 border-t border-on-navy/15 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+        <div className="pt-8 border-t border-on-navy/15">
           <p className="font-body-md text-sm opacity-60 max-w-2xl">
             © {BUSINESS.copyrightYear} {BUSINESS.name}. All rights reserved. Medical disclaimer:{" "}
             {BUSINESS.medicalDisclaimer}
           </p>
-          <Link
-            to="/admin"
-            className="font-label-caps text-label-caps opacity-40 hover:opacity-100 transition-opacity flex-shrink-0"
-          >
-            Staff Login
-          </Link>
         </div>
       </div>
     </footer>

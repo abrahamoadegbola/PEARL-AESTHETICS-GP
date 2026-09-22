@@ -44,7 +44,7 @@ export default function Header() {
       className={`fixed top-0 w-full z-50 backdrop-blur-xl transition-all duration-500 ${
         transparent
           ? "bg-navy/10 border-b border-white/10"
-          : "bg-white/60 border-b border-white/40 shadow-[0_8px_32px_rgba(1,68,94,0.06)]"
+          : "bg-white/60 border-b border-white/40 shadow-[0_8px_32px_rgba(14,58,48,0.08)]"
       }`}
     >
       <div className="flex justify-between items-center px-gutter py-3 w-full max-w-container-max mx-auto">

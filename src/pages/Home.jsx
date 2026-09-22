@@ -231,14 +231,14 @@ export default function Home() {
         <div className="absolute inset-0 -z-10 bg-gradient-to-b from-navy/75 via-navy/25 to-navy/80" />
         <div
           className="absolute inset-0 -z-10 opacity-70"
-          style={{ background: "radial-gradient(ellipse 80% 60% at 50% 100%, rgba(1,68,94,0.55), transparent 70%)" }}
+          style={{ background: "radial-gradient(ellipse 80% 60% at 50% 100%, rgba(10,43,35,0.55), transparent 70%)" }}
         />
-        {/* A faint teal glow low in the frame - the one spot of colour in an
-            otherwise monochrome scrim, so the brand accent is felt before
-            it's ever read in text. */}
+        {/* A faint gold glow low in the frame - the one spot of colour in an
+            otherwise monochrome green scrim, so the brand accent is felt
+            before it's ever read in text. */}
         <div
           className="absolute -bottom-32 left-1/2 -translate-x-1/2 w-[60rem] h-[30rem] -z-10 opacity-30 blur-3xl pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(57,179,185,0.6), transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, rgba(254,214,91,0.6), transparent 70%)" }}
           aria-hidden="true"
         />
 
@@ -263,7 +263,7 @@ export default function Home() {
                     fontSize: i === 1 ? "clamp(2.75rem, 6.5vw, 5rem)" : "clamp(1.75rem, 4vw, 3rem)",
                     lineHeight: 1.08,
                     letterSpacing: "-0.02em",
-                    textShadow: i === 1 ? "0 2px 40px rgba(57,179,185,0.35)" : undefined,
+                    textShadow: i === 1 ? "0 2px 40px rgba(254,214,91,0.35)" : undefined,
                   }}
                 >
                   {line.text}
@@ -280,7 +280,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-14">
               <MagneticButton>
                 <Link
-                  className="inline-flex justify-center items-center bg-primary text-on-primary px-8 py-4 rounded hover:bg-primary-container transition-all duration-200 ease-out font-label-caps text-label-caps uppercase tracking-widest w-full shadow-[0_8px_32px_-4px_rgba(57,179,185,0.55)] hover:shadow-[0_8px_40px_-2px_rgba(57,179,185,0.7)]"
+                  className="inline-flex justify-center items-center bg-primary text-on-primary px-8 py-4 rounded hover:bg-primary-container transition-all duration-200 ease-out font-label-caps text-label-caps uppercase tracking-widest w-full shadow-[0_8px_32px_-4px_rgba(254,214,91,0.5)] hover:shadow-[0_8px_40px_-2px_rgba(254,214,91,0.65)]"
                   to="/book-consultation"
                 >
                   Book Your Consultation
