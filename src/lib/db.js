@@ -34,9 +34,28 @@ function mapProductRow(row) {
   return { ...row, longDescription: row.long_description };
 }
 
+// Original seed images that didn't match their treatment (General
+// Medicine showed a facial, IV Wellness a skin close-up). Rows still
+// holding them get the replacement, so the fix shows without re-running
+// schema.sql; anything changed in Admin -> Treatments is left alone.
+const REPLACED_TREATMENT_IMAGES = {
+  "https://images.unsplash.com/photo-1761718210089-ba3bb5ccb54f?auto=format&fit=crop&w=1000&h=1000&q=85":
+    "https://images.unsplash.com/photo-1758691462123-8a17ae95d203?auto=format&fit=crop&w=1000&h=1000&q=85",
+  "https://images.unsplash.com/photo-1552693673-1bf958298935?auto=format&fit=crop&w=1000&h=1000&q=85":
+    "https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=1000&h=1000&q=85",
+};
+
 function mapTreatmentRow(row) {
   if (!row) return row;
-  return { ...row, priceFrom: row.price_from, priceLabel: row.price_label, durationMinutes: row.duration_minutes };
+  return {
+    ...row,
+    image: REPLACED_TREATMENT_IMAGES[row.image] || row.image,
+    // The clinic offers stem cell therapy, not exosome therapy.
+    description: row.description?.replace(/exosome therapy/gi, "stem cell therapy"),
+    priceFrom: row.price_from,
+    priceLabel: row.price_label,
+    durationMinutes: row.duration_minutes,
+  };
 }
 
 function mapOrderRow(row) {
