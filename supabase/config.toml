@@ -21,6 +21,10 @@ verify_jwt = true
 [functions.google-reviews]
 verify_jwt = true
 
+# Admin panel Staff page - checks the caller is the super admin itself.
+[functions.manage-staff]
+verify_jwt = true
+
 # Stripe calls this one directly (not through a logged-in Supabase client),
 # so it can't carry a Supabase JWT. Signature verification inside the
 # function itself is what secures it instead. Setting this here means you

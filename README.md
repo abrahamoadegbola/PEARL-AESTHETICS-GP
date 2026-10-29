@@ -35,10 +35,17 @@ Nothing here needs Render/Railway/a VPS/etc. — Supabase hosts the database
    `supabase/schema.sql` → run it. This creates the `products`,
    `bookings`, and `orders` tables, Row Level Security policies, a
    `decrement_stock()` function, and seeds the 6 shop products.
-3. **Authentication → Users → Add user** — create an email+password
-   account for yourself. That's your admin login at `/admin`. There's no
-   separate "admin role" — anyone with an account here has full access to
-   bookings/orders/inventory, so only add accounts you trust.
+3. **Authentication → Users → Add user**: create an email+password
+   account for the clinic owner, then sign in once at `/admin`. The first
+   person to sign in becomes the **super admin**. This is the only account
+   ever created in Supabase by hand: the super admin invites everyone else
+   from **Admin → Staff** (see "Staff and the super admin" below).
+4. **Authentication → Sign In / Providers → Email**: turn off **Allow new
+   users to sign up**. Staff join by invitation only.
+5. **Authentication → URL Configuration**: set **Site URL** to the live
+   domain and add `https://<your-domain>/admin/accept-invite` (and
+   `http://localhost:5173/admin/accept-invite` for local testing) to
+   **Redirect URLs**. Invitation links land there.
 
 ## 2. Frontend `.env`
 
@@ -64,7 +71,7 @@ supabase login
 supabase link --project-ref your-project-ref
 ```
 
-Then deploy all seven functions:
+Then deploy all eight functions:
 
 ```bash
 supabase functions deploy create-checkout-session
@@ -74,6 +81,7 @@ supabase functions deploy send-contact-email
 supabase functions deploy stripe-webhook
 supabase functions deploy instagram-feed
 supabase functions deploy google-reviews
+supabase functions deploy manage-staff
 ```
 
 **Secrets in one go:** copy `supabase/functions/.env.example` to
@@ -358,8 +366,9 @@ VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...
 - **Public visitors** (not logged in) can: read active products and
   treatments, submit a booking, and submit an order at checkout. RLS
   blocks everything else for anonymous users.
-- **Admins** (logged in via Supabase Auth) can read/update/delete
-  everything in all four tables.
+- **Staff** (logged in *and* listed in `public.staff`) can read/update/delete
+  everything in all four tables. Only the super admin can add or remove staff,
+  via the `manage-staff` function.
 - **Realtime**: the admin panel, shop, and treatment pages all subscribe
   to Postgres changes — a new booking shows up in `/admin/bookings`, and
   a treatment you edit in `/admin/treatments` updates on Home/Treatments/
@@ -412,8 +421,29 @@ placeholders and need real, consented patient photos before launch.
 
 ## Admin panel — `/admin`
 
-"Staff Login" link in the site footer, or go straight to `/admin`. Sign in
-with an account you created in Supabase (§1) — there's no default password.
+"Staff Login" link in the site footer, or go straight to `/admin`. There's
+no default password: the super admin's login is created in Supabase (§1),
+everyone else is invited.
+
+### Staff and the super admin
+
+- **Super admin** (the clinic owner): everything below, plus the **Staff**
+  page. Their login is the only one created in the Supabase dashboard; the
+  first sign-in to `/admin` claims the role (`claim_staff_role()` in
+  `schema.sql`).
+- **Staff**: invited from **Admin → Staff** by name and email. The
+  `manage-staff` function creates their login and emails a branded
+  "Accept invitation" link through the clinic's Gmail mailer. The link
+  opens `/admin/accept-invite`, where they choose their password. If email
+  isn't configured, the Staff page shows the link to copy and send another
+  way (e.g. WhatsApp).
+- **Forgotten passwords**: the super admin clicks **Reset password** next
+  to the person on the Staff page; they get a fresh link by email.
+- **Removing someone** deletes their login immediately.
+- Being signed in isn't enough: every admin policy checks
+  `public.is_staff()`, so an account that isn't on the staff list sees
+  "No admin access" and can't read any patient data, even through the API.
+- Uses `CLIENT_URL` for the link address, so make sure it's the live domain.
 
 - **Dashboard**: pending bookings, unpaid orders, confirmed revenue, low
   stock, recent activity.
@@ -559,9 +589,9 @@ added (a bucket + upload UI) — happy to add that as a follow-up.
   table), not here.
 - `src/pages/` — one component per public page, plus
   `CheckoutSuccess.jsx` / `CheckoutCancel.jsx` for the Stripe redirect
-- `src/pages/admin/` — admin login, layout, dashboard, bookings, orders,
-  inventory
+- `src/pages/admin/` — admin login, accept-invite, layout, dashboard,
+  bookings, orders, inventory, treatments, staff (super admin only)
 - `supabase/schema.sql` — run once in the SQL Editor (§1)
-- `supabase/functions/` — the seven Edge Functions (§3), plus `_shared/`
+- `supabase/functions/` — the eight Edge Functions (§3), plus `_shared/`
   for the CORS headers, Stripe client, Supabase admin client, mailer,
   WhatsApp sender, order notifications, and the branded `emailTemplate.ts`

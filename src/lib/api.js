@@ -60,3 +60,8 @@ export function getInstagramFeed() {
 export function getGoogleReviews() {
   return invoke("google-reviews", undefined, "GET");
 }
+
+// Admin -> Staff (super admin only). action: "list" | "invite" | "resend" | "remove".
+export function manageStaff(action, payload = {}) {
+  return invoke("manage-staff", { action, ...payload });
+}

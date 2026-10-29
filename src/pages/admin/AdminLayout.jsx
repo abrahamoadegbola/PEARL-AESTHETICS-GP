@@ -8,10 +8,11 @@ const links = [
   { to: "/admin/orders", label: "Orders & Payments", icon: "receipt_long" },
   { to: "/admin/inventory", label: "Inventory", icon: "inventory_2" },
   { to: "/admin/treatments", label: "Treatments", icon: "spa" },
+  { to: "/admin/staff", label: "Staff", icon: "group", superAdminOnly: true },
 ];
 
 export default function AdminLayout() {
-  const { isAuthenticated, loading, logout } = useAdminAuth();
+  const { isAuthenticated, isStaff, isSuperAdmin, loading, logout, user } = useAdminAuth();
   const location = useLocation();
 
   if (loading) {
@@ -26,6 +27,28 @@ export default function AdminLayout() {
     return <Navigate to="/admin/login" replace state={{ from: location.pathname }} />;
   }
 
+  if (!isStaff) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-gutter">
+        <div className="w-full max-w-sm bg-surface border border-outline-variant/30 rounded-xl p-8 text-center space-y-4">
+          <span className="material-symbols-outlined text-[40px] text-outline">lock</span>
+          <h1 className="font-display-lg text-headline-sm text-primary">No admin access</h1>
+          <p className="font-body-md text-body-md text-on-surface-variant">
+            {user?.email} isn't on the clinic's staff list. Ask the clinic's super admin to invite you from Admin → Staff.
+          </p>
+          <button
+            onClick={logout}
+            className="w-full bg-primary text-on-primary py-3 rounded font-label-caps text-label-caps uppercase tracking-widest hover:bg-primary-container transition-colors"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const visibleLinks = links.filter((l) => !l.superAdminOnly || isSuperAdmin);
+
   return (
     <div className="min-h-screen bg-background flex">
       <aside className="w-64 flex-shrink-0 bg-surface border-r border-outline-variant/30 hidden md:flex flex-col">
@@ -34,7 +57,7 @@ export default function AdminLayout() {
           <p className="font-label-caps text-label-caps text-outline uppercase tracking-widest mt-1">Admin</p>
         </div>
         <nav className="flex-grow px-3 py-6 space-y-1">
-          {links.map((l) => (
+          {visibleLinks.map((l) => (
             <NavLink
               key={l.to}
               to={l.to}
@@ -84,7 +107,7 @@ export default function AdminLayout() {
         </main>
         {/* Mobile bottom nav */}
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface border-t border-outline-variant/30 flex justify-around py-2">
-          {links.map((l) => (
+          {visibleLinks.map((l) => (
             <NavLink
               key={l.to}
               to={l.to}

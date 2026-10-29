@@ -25,6 +25,8 @@ import AdminBookings from "./pages/admin/AdminBookings";
 import AdminOrders from "./pages/admin/AdminOrders";
 import AdminInventory from "./pages/admin/AdminInventory";
 import AdminTreatments from "./pages/admin/AdminTreatments";
+import AdminStaff from "./pages/admin/AdminStaff";
+import AcceptInvite from "./pages/admin/AcceptInvite";
 
 export default function App() {
   return (
@@ -51,12 +53,14 @@ export default function App() {
       </Route>
 
       <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/accept-invite" element={<AcceptInvite />} />
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
         <Route path="bookings" element={<AdminBookings />} />
         <Route path="orders" element={<AdminOrders />} />
         <Route path="inventory" element={<AdminInventory />} />
         <Route path="treatments" element={<AdminTreatments />} />
+        <Route path="staff" element={<AdminStaff />} />
       </Route>
     </Routes>
   );

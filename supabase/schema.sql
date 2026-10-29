@@ -141,6 +141,69 @@ $$ language plpgsql security definer;
 grant execute on function public.decrement_stock(text, integer) to anon, authenticated;
 
 -- ============================================================
+-- Staff (who may use the admin panel)
+-- ============================================================
+-- Being signed in is not enough to see patient data: the account must
+-- also be listed here. The super admin (the clinic owner) invites
+-- everyone else from Admin -> Staff; the manage-staff Edge Function
+-- creates their login and adds the row.
+create table if not exists public.staff (
+  user_id uuid primary key references auth.users (id) on delete cascade,
+  email text not null,
+  name text,
+  role text not null default 'staff' check (role in ('super_admin', 'staff')),
+  invited_by uuid references auth.users (id) on delete set null,
+  created_at timestamptz not null default now()
+);
+alter table public.staff enable row level security;
+
+create or replace function public.is_staff()
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select exists (select 1 from public.staff where user_id = auth.uid());
+$$;
+
+-- Returns the signed-in user's role ('super_admin', 'staff', or null).
+-- Until a super admin exists, the first account to sign in becomes it:
+-- the owner creates their own login in Supabase -> Authentication and
+-- signs in to /admin once; everyone after that is invited by them.
+create or replace function public.claim_staff_role()
+returns text
+language plpgsql security definer set search_path = public
+as $$
+declare
+  current_role_name text;
+begin
+  if auth.uid() is null then
+    return null;
+  end if;
+  perform pg_advisory_xact_lock(hashtext('claim_staff_role'));
+  select role into current_role_name from public.staff where user_id = auth.uid();
+  if current_role_name is not null then
+    return current_role_name;
+  end if;
+  if not exists (select 1 from public.staff where role = 'super_admin') then
+    insert into public.staff (user_id, email, name, role)
+    select id, email, raw_user_meta_data ->> 'name', 'super_admin' from auth.users where id = auth.uid();
+    return 'super_admin';
+  end if;
+  return null;
+end;
+$$;
+
+revoke execute on function public.is_staff() from public, anon;
+revoke execute on function public.claim_staff_role() from public, anon;
+grant execute on function public.is_staff() to authenticated;
+grant execute on function public.claim_staff_role() to authenticated;
+
+drop policy if exists "staff can read the team" on public.staff;
+create policy "staff can read the team"
+  on public.staff for select
+  to authenticated
+  using (public.is_staff());
+
+-- ============================================================
 -- Row Level Security
 -- ============================================================
 alter table public.products enable row level security;
@@ -149,29 +212,29 @@ alter table public.bookings enable row level security;
 alter table public.orders enable row level security;
 
 -- Products: anyone can read active products (the public shop); only
--- authenticated (admin) users can see everything or write.
+-- staff (see public.staff above) can see everything or write.
 drop policy if exists "public can read active products" on public.products;
 create policy "public can read active products"
   on public.products for select
-  using (active = true or auth.role() = 'authenticated');
+  using (active = true or public.is_staff());
 
 drop policy if exists "admin can insert products" on public.products;
 create policy "admin can insert products"
   on public.products for insert
   to authenticated
-  with check (true);
+  with check (public.is_staff());
 
 drop policy if exists "admin can update products" on public.products;
 create policy "admin can update products"
   on public.products for update
   to authenticated
-  using (true);
+  using (public.is_staff());
 
 drop policy if exists "admin can delete products" on public.products;
 create policy "admin can delete products"
   on public.products for delete
   to authenticated
-  using (true);
+  using (public.is_staff());
 
 -- Treatments: same pattern as products - public sees only active
 -- treatments (what's shown on Home/Treatments/Treatment Menu), admins
@@ -179,25 +242,25 @@ create policy "admin can delete products"
 drop policy if exists "public can read active treatments" on public.treatments;
 create policy "public can read active treatments"
   on public.treatments for select
-  using (active = true or auth.role() = 'authenticated');
+  using (active = true or public.is_staff());
 
 drop policy if exists "admin can insert treatments" on public.treatments;
 create policy "admin can insert treatments"
   on public.treatments for insert
   to authenticated
-  with check (true);
+  with check (public.is_staff());
 
 drop policy if exists "admin can update treatments" on public.treatments;
 create policy "admin can update treatments"
   on public.treatments for update
   to authenticated
-  using (true);
+  using (public.is_staff());
 
 drop policy if exists "admin can delete treatments" on public.treatments;
 create policy "admin can delete treatments"
   on public.treatments for delete
   to authenticated
-  using (true);
+  using (public.is_staff());
 
 -- Bookings: anyone can create a booking (the public booking form), but
 -- only admins can read, update, or delete them - a patient shouldn't be
@@ -211,19 +274,19 @@ drop policy if exists "admin can read bookings" on public.bookings;
 create policy "admin can read bookings"
   on public.bookings for select
   to authenticated
-  using (true);
+  using (public.is_staff());
 
 drop policy if exists "admin can update bookings" on public.bookings;
 create policy "admin can update bookings"
   on public.bookings for update
   to authenticated
-  using (true);
+  using (public.is_staff());
 
 drop policy if exists "admin can delete bookings" on public.bookings;
 create policy "admin can delete bookings"
   on public.bookings for delete
   to authenticated
-  using (true);
+  using (public.is_staff());
 
 -- Orders: same pattern as bookings - anyone can place an order at
 -- checkout, only admins can browse/manage the full order list.
@@ -236,19 +299,19 @@ drop policy if exists "admin can read orders" on public.orders;
 create policy "admin can read orders"
   on public.orders for select
   to authenticated
-  using (true);
+  using (public.is_staff());
 
 drop policy if exists "admin can update orders" on public.orders;
 create policy "admin can update orders"
   on public.orders for update
   to authenticated
-  using (true);
+  using (public.is_staff());
 
 drop policy if exists "admin can delete orders" on public.orders;
 create policy "admin can delete orders"
   on public.orders for delete
   to authenticated
-  using (true);
+  using (public.is_staff());
 
 -- The Supabase Edge Functions (supabase/functions/) use the service_role
 -- key for the Stripe webhook/checkout-session confirmation flow, which

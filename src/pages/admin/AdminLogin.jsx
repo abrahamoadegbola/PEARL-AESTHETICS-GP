@@ -83,8 +83,8 @@ export default function AdminLogin() {
           {submitting ? "Signing In…" : "Sign In"}
         </button>
         <p className="text-xs text-on-surface-variant text-center opacity-70">
-          No account yet? Create one in your Supabase project: Dashboard → Authentication → Users → Add
-          user.
+          Staff accounts are by invitation. Forgot your password? Ask the clinic's super admin to send
+          you a new link.
         </p>
       </form>
     </div>
