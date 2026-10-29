@@ -127,7 +127,7 @@ export default function HydrafacialDetail() {
           <>
             <MagneticButton>
               <Link
-                to="/book-consultation"
+                to="/book-consultation?treatment=hydrafacial"
                 className="inline-flex justify-center items-center bg-secondary-container text-on-secondary-container px-8 py-4 rounded font-label-caps text-label-caps uppercase tracking-widest hover:bg-secondary-fixed transition-colors w-full"
               >
                 Book This Treatment
@@ -237,7 +237,7 @@ export default function HydrafacialDetail() {
                 </dl>
 
                 <Link
-                  to="/book-consultation"
+                  to="/book-consultation?treatment=hydrafacial"
                   className="w-full inline-flex justify-center items-center bg-secondary-container text-on-secondary-container py-4 rounded font-label-caps text-label-caps uppercase tracking-widest hover:bg-secondary-fixed transition-colors"
                 >
                   Book Appointment

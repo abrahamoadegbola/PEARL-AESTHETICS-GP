@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { addBooking } from "../lib/db";
+import { addBooking, getActiveTreatments } from "../lib/db";
+import useDbCollection from "../hooks/useDbCollection";
 import Reveal from "../components/motion/Reveal";
 import { buildWhatsAppLink, bookingWhatsAppMessage } from "../lib/whatsapp";
 import { sendBookingNotifications } from "../lib/api";
@@ -11,6 +12,8 @@ import DatePicker, { formatLongDate } from "../components/form/DatePicker";
 import TimeSlots, { formatTime } from "../components/form/TimeSlots";
 import Field from "../components/form/Field";
 
+// Used when the treatments table can't be loaded; normally step 1 lists
+// the clinic's real treatments (the same ones shown on the Treatments page).
 const CATEGORIES = [
   {
     id: "skin",
@@ -42,6 +45,26 @@ const CATEGORIES = [
   },
 ];
 
+// The always-available "not sure" option, listed after the treatments.
+const GENERAL_CHOICE = {
+  id: "assessment",
+  icon: "stethoscope",
+  title: "Not sure yet",
+  description: "Book a general consultation and we'll talk through your goals and build a plan with you.",
+};
+
+function treatmentChoice(t) {
+  return {
+    id: t.id,
+    icon: t.icon || "spa",
+    title: t.name,
+    description: t.description,
+    image: t.image,
+    price: t.priceLabel || (t.priceFrom ? `From AED ${t.priceFrom}` : null),
+    duration: t.durationMinutes,
+  };
+}
+
 const initialDetails = { date: "", time: "", name: "", email: "", phone: "", notes: "" };
 
 // Shared transition for the step panels below - a step exits before the
@@ -57,6 +80,15 @@ export default function BookConsultation() {
   // button (e.g. /book-consultation?doctor=hamid-balogun) - a plain visit
   // to this page has no doctor preselected, and stays a general booking.
   const requestedDoctor = requestedDoctorId ? DOCTORS.find((d) => d.id === requestedDoctorId) : null;
+  // Set when arriving from a treatment (e.g. ?treatment=laser-tightening):
+  // that treatment is chosen for them and the booking opens on step 2.
+  const requestedTreatmentId = searchParams.get("treatment");
+
+  const [treatments] = useDbCollection(getActiveTreatments);
+  const choices = useMemo(
+    () => (treatments.length ? [...treatments.map(treatmentChoice), GENERAL_CHOICE] : CATEGORIES),
+    [treatments]
+  );
 
   const [step, setStep] = useState(1);
   const reduceMotion = useReducedMotion();
@@ -67,6 +99,16 @@ export default function BookConsultation() {
   const [details, setDetails] = useState(initialDetails);
   const [booking, setBooking] = useState(null);
   const [emailStatus, setEmailStatus] = useState("idle"); // idle | sending | sent | failed
+
+  const preselected = useRef(false);
+  useEffect(() => {
+    if (preselected.current || !requestedTreatmentId) return;
+    const match = choices.find((c) => c.id === requestedTreatmentId);
+    if (!match) return;
+    preselected.current = true;
+    setCategory(match);
+    setStep(2);
+  }, [choices, requestedTreatmentId]);
 
   const handleChange = (e) => setDetails((d) => ({ ...d, [e.target.name]: e.target.value }));
 
@@ -142,7 +184,13 @@ export default function BookConsultation() {
           className="font-display-lg text-primary mb-5"
           style={{ fontSize: "clamp(2.25rem, 4.5vw, 3.5rem)", lineHeight: 1.08, letterSpacing: "-0.02em" }}
         >
-          Book a consultation
+          {category && step < 4 ? (
+            <>
+              Your <span className="font-serif-display italic font-medium">{category.title}</span> consultation
+            </>
+          ) : (
+            "Book a consultation"
+          )}
         </h1>
         {requestedDoctor && (
           <div className="inline-flex items-center gap-3 mb-7 pl-2 pr-4 py-2 rounded-full bg-surface-container-low border border-outline-variant/40">
@@ -178,7 +226,7 @@ export default function BookConsultation() {
         </div>
         {step === 1 && (
           <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">
-            Choose the area you'd like to discuss. Your first consultation is complimentary, and nothing is
+            Choose the treatment you'd like to discuss. Your first consultation is complimentary, and nothing is
             booked in until you've spoken to a practitioner.
           </p>
         )}
@@ -187,17 +235,23 @@ export default function BookConsultation() {
       <AnimatePresence mode="wait">
       {step === 1 && (
         <motion.div key="step-1" {...stepMotion} className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-gutter">
-          {CATEGORIES.map((cat, i) => (
-            <Reveal key={cat.id} delay={0.07 * i} as="div" className="h-full">
+          {choices.map((cat, i) => (
+            <Reveal key={cat.id} delay={0.05 * (i % 6)} as="div" className="h-full">
               <button
                 onClick={() => handleSelectCategory(cat)}
                 className="group h-full w-full bg-surface-container-lowest rounded-xl p-8 md:p-10 text-left border border-outline-variant/30 flex flex-col items-start gap-6 transition-all duration-500 hover:border-primary/25 hover:shadow-xl hover:shadow-primary/5 active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
-                <span className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary transition-colors duration-300 group-hover:bg-primary group-hover:text-on-primary">
-                  <span className="material-symbols-outlined" style={{ fontSize: "28px" }}>
-                    {cat.icon}
+                {cat.image ? (
+                  <span className="relative w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0">
+                    <img src={cat.image} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                   </span>
-                </span>
+                ) : (
+                  <span className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary transition-colors duration-300 group-hover:bg-primary group-hover:text-on-primary">
+                    <span className="material-symbols-outlined" style={{ fontSize: "28px" }}>
+                      {cat.icon}
+                    </span>
+                  </span>
+                )}
                 <div>
                   <h2 className="font-headline-sm text-headline-sm text-primary mb-3">{cat.title}</h2>
                   <p className="font-body-md text-body-md text-on-surface-variant">{cat.description}</p>
@@ -221,19 +275,43 @@ export default function BookConsultation() {
           onSubmit={handleContinue}
           className="w-full max-w-5xl space-y-10"
         >
-          <div className="flex flex-wrap items-center gap-3 rounded-full bg-surface-container-low border border-outline-variant/40 pl-2 pr-5 py-2 w-fit mx-auto">
-            <span className="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center">
-              <span className="material-symbols-outlined text-[20px]">{category.icon}</span>
-            </span>
-            <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest">{category.title}</span>
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="text-on-surface-variant hover:text-primary text-label-caps font-label-caps underline underline-offset-2"
-            >
-              Change
-            </button>
-          </div>
+          {category.image ? (
+            // Chosen from a real treatment: show what they're booking.
+            <div className="flex flex-col sm:flex-row gap-5 sm:gap-7 items-stretch rounded-2xl bg-surface-container-lowest border border-outline-variant/40 overflow-hidden shadow-[0_12px_40px_-16px_rgba(14,58,48,0.12)]">
+              <img src={category.image} alt="" className="w-full sm:w-56 h-44 sm:h-auto object-cover" />
+              <div className="flex-1 p-6 sm:py-7 sm:pl-0 sm:pr-8">
+                <p className="font-label-caps text-label-caps text-secondary uppercase tracking-[0.2em] mb-2">You're booking</p>
+                <h2 className="font-headline-sm text-headline-sm text-primary mb-2">{category.title}</h2>
+                <p className="font-body-md text-body-md text-on-surface-variant mb-4">{category.description}</p>
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 font-label-caps text-label-caps uppercase tracking-widest text-on-surface-variant">
+                  {category.price && <span className="text-primary">{category.price}</span>}
+                  {category.duration && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-[16px]">schedule</span>
+                      {category.duration} min
+                    </span>
+                  )}
+                  <button type="button" onClick={() => setStep(1)} className="text-on-surface-variant hover:text-primary underline underline-offset-2">
+                    Change treatment
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-wrap items-center gap-3 rounded-full bg-surface-container-low border border-outline-variant/40 pl-2 pr-5 py-2 w-fit mx-auto">
+              <span className="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center">
+                <span className="material-symbols-outlined text-[20px]">{category.icon}</span>
+              </span>
+              <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest">{category.title}</span>
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                className="text-on-surface-variant hover:text-primary text-label-caps font-label-caps underline underline-offset-2"
+              >
+                Change
+              </button>
+            </div>
+          )}
 
           {/* Date + time, side by side on desktop */}
           <section>
@@ -308,7 +386,7 @@ export default function BookConsultation() {
           <h2 className="font-headline-md text-headline-md text-primary mb-4">Confirm Your Booking</h2>
           <dl className="space-y-3 font-body-md text-body-md">
             <div className="flex justify-between border-b border-outline-variant/30 pb-3">
-              <dt className="text-on-surface-variant">Category</dt>
+              <dt className="text-on-surface-variant">Treatment</dt>
               <dd className="text-primary font-medium">{category.title}</dd>
             </div>
             {requestedDoctor && (

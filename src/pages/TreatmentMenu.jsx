@@ -69,7 +69,7 @@ export default function TreatmentMenu() {
             {filtered.map((t, i) => (
               <Reveal key={t.id} delay={0.06 * (i % 3)}>
                 <Link
-                  to="/book-consultation"
+                  to={`/book-consultation?treatment=${encodeURIComponent(t.id)}`}
                   className="group flex flex-col h-full bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/30 transition-all duration-500 hover:border-primary/25 hover:shadow-xl hover:shadow-primary/5"
                 >
                   <div className="relative aspect-[4/3] overflow-hidden">

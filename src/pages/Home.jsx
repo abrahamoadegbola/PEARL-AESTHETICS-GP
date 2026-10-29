@@ -521,7 +521,7 @@ export default function Home() {
           {featured && (
             <Reveal delay={0.05}>
               <Link
-                to="/treatment-menu"
+                to={`/book-consultation?treatment=${encodeURIComponent(featured.id)}`}
                 className="group relative flex flex-col md:flex-row items-stretch bg-surface-container-lowest border border-outline-variant/30 rounded-2xl overflow-hidden mb-8 hover:shadow-2xl hover:shadow-primary/10 transition-shadow duration-500"
               >
                 <div className="md:w-1/2 aspect-[16/10] md:aspect-auto overflow-hidden relative">
@@ -555,7 +555,7 @@ export default function Home() {
             {rest.map((t, i) => (
               <Reveal key={t.id} delay={0.08 * (i % 3)}>
                 <Link
-                  to="/treatment-menu"
+                  to={`/book-consultation?treatment=${encodeURIComponent(t.id)}`}
                   className="group relative flex flex-col bg-surface-container-lowest border border-outline-variant/30 rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 h-full"
                 >
                   <div className="aspect-[4/3] overflow-hidden relative">

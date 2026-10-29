@@ -362,8 +362,18 @@ insert into public.treatments (id, name, category, description, price_from, pric
 values
   ('injectables', 'Injectables', 'Face', 'Anti-wrinkle treatments, dermal & lip fillers, and facial contouring.', 599, null, 'colorize', 'https://images.unsplash.com/photo-1630835425197-50feeba99ecd?auto=format&fit=crop&w=1000&h=1000&q=85', 30, true, true),
   ('hydrafacial', 'HydraFacial', 'Skin', 'Silver, Gold & Pearl tiers — deep cleanse, hydrate and glow.', 150, null, 'water_drop', 'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?auto=format&fit=crop&w=1000&h=1000&q=85', 45, false, true),
-  ('skin-rejuvenation', 'Skin Rejuvenation', 'Skin', 'Chemical peels, microneedling, skin boosters, PRP & exosome therapy.', 350, null, 'spa', 'https://images.unsplash.com/photo-1583417657209-d3dd44dc9c09?auto=format&fit=crop&w=1000&h=1000&q=85', 45, false, true),
+  ('skin-rejuvenation', 'Skin Rejuvenation', 'Skin', 'Chemical peels, microneedling, skin boosters, PRP & stem cell therapy.', 350, null, 'spa', 'https://images.unsplash.com/photo-1583417657209-d3dd44dc9c09?auto=format&fit=crop&w=1000&h=1000&q=85', 45, false, true),
   ('laser-tightening', 'Laser & Tightening', 'Body', 'Laser hair removal and skin-tightening for smooth, firm skin.', 55, null, 'flare', 'https://images.unsplash.com/photo-1544717304-a2db4a7b16ee?auto=format&fit=crop&w=1000&h=1000&q=85', 30, false, true),
-  ('iv-wellness', 'IV Wellness Drips', 'IV Therapy', 'Immunity, energy and glow infusions to restore vitality from within.', 700, null, 'vaccines', 'https://images.unsplash.com/photo-1552693673-1bf958298935?auto=format&fit=crop&w=1000&h=1000&q=85', 60, false, true),
-  ('general-medicine', 'General Medicine', 'GP', 'GP consultations, internal medicine, vitamin panels and health checks.', 0, 'Consultation complimentary', 'stethoscope', 'https://images.unsplash.com/photo-1761718210089-ba3bb5ccb54f?auto=format&fit=crop&w=1000&h=1000&q=85', 30, false, true)
+  ('iv-wellness', 'IV Wellness Drips', 'IV Therapy', 'Immunity, energy and glow infusions to restore vitality from within.', 700, null, 'vaccines', 'https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=1000&h=1000&q=85', 60, false, true),
+  ('general-medicine', 'General Medicine', 'GP', 'GP consultations, internal medicine, vitamin panels and health checks.', 0, 'Consultation complimentary', 'stethoscope', 'https://images.unsplash.com/photo-1758691462123-8a17ae95d203?auto=format&fit=crop&w=1000&h=1000&q=85', 30, false, true)
 on conflict (id) do nothing;
+
+-- Content fixes for databases seeded before 2026-10-29. Each only touches
+-- a row still holding the original wording/image, so edits made in the
+-- admin panel are never overwritten.
+update public.treatments set description = replace(description, 'exosome therapy', 'stem cell therapy')
+  where id = 'skin-rejuvenation' and description like '%exosome therapy%';
+update public.treatments set image = 'https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?auto=format&fit=crop&w=1000&h=1000&q=85'
+  where id = 'iv-wellness' and image = 'https://images.unsplash.com/photo-1552693673-1bf958298935?auto=format&fit=crop&w=1000&h=1000&q=85';
+update public.treatments set image = 'https://images.unsplash.com/photo-1758691462123-8a17ae95d203?auto=format&fit=crop&w=1000&h=1000&q=85'
+  where id = 'general-medicine' and image = 'https://images.unsplash.com/photo-1761718210089-ba3bb5ccb54f?auto=format&fit=crop&w=1000&h=1000&q=85';

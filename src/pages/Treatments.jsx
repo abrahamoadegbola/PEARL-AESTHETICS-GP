@@ -72,7 +72,7 @@ export default function Treatments() {
                   {items.map((t, i) => (
                     <Reveal key={t.id} delay={0.05 * (i % 4)}>
                       <Link
-                        to="/treatment-menu"
+                        to={`/book-consultation?treatment=${encodeURIComponent(t.id)}`}
                         className="group block border-b border-outline-variant/40 py-8 md:py-10 transition-colors hover:bg-surface-container-lowest/70"
                       >
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between mb-3">
@@ -94,7 +94,7 @@ export default function Treatments() {
                             </span>
                           )}
                           <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest inline-flex items-center gap-2 ml-auto">
-                            Learn more
+                            Book this treatment
                             <span className="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">
                               arrow_forward
                             </span>

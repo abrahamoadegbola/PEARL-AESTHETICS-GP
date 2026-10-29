@@ -56,10 +56,6 @@ const BUSINESS = {
     closeTime: "10:00 PM",
   },
 
-  externalBooking: {
-    label: "Book via InstaHMS",
-    url: "https://pearl-trg.uae.instahms.com/instahms/loginForm.do",
-  },
 
   stats: [
     { value: "5.0", label: "Verified Google Reviews", icon: "star" },

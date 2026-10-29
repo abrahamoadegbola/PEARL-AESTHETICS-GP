@@ -64,16 +64,6 @@ export default function CTABand({
               Book Your Consultation
             </Link>
           </MagneticButton>
-          <MagneticButton>
-            <a
-              href={BUSINESS.externalBooking.url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex justify-center items-center border border-on-primary/40 text-on-primary px-8 py-4 rounded font-label-caps text-label-caps uppercase tracking-widest hover:bg-on-primary/10 transition-colors w-full"
-            >
-              {BUSINESS.externalBooking.label}
-            </a>
-          </MagneticButton>
         </div>
       </Reveal>
     </section>
