@@ -13,9 +13,8 @@ const navLinks = [
   { to: "/about", label: "About" },
 ];
 
-// The clinic's own logo, from their live site's own asset folder -
-// first-party brand asset, not a third party's.
-const LOGO_URL = "https://amazing-ganache-b98cf4.netlify.app/assets/logo.png";
+// The clinic's own logo, saved in public/ (also the source of the favicons).
+const LOGO_URL = "/logo.png";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -71,7 +70,9 @@ export default function Header() {
               className={({ isActive }) =>
                 `font-label-caps text-label-caps uppercase tracking-widest transition-colors relative py-1 ${
                   isActive
-                    ? "text-primary"
+                    ? transparent
+                      ? "text-white"
+                      : "text-primary"
                     : transparent
                       ? "text-white/85 hover:text-white"
                       : "text-on-surface-variant hover:text-primary"
@@ -82,7 +83,7 @@ export default function Header() {
                 <>
                   {l.label}
                   <span
-                    className={`absolute -bottom-0.5 left-0 h-px bg-primary transition-all duration-300 ${
+                    className={`absolute -bottom-0.5 left-0 h-px transition-all duration-300 ${transparent ? "bg-secondary-container" : "bg-primary"} ${
                       isActive ? "w-full" : "w-0"
                     }`}
                   />

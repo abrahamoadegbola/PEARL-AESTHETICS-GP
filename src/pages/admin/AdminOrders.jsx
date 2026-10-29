@@ -5,12 +5,14 @@ import { buildWhatsAppLink, orderWhatsAppMessage } from "../../lib/whatsapp";
 import SupabaseSetupNotice from "../../components/SupabaseSetupNotice";
 import StyledSelect from "../../components/admin/StyledSelect";
 
-const PAYMENT_STATUSES = ["pending", "paid", "refunded"];
+const PAYMENT_STATUSES = ["pending", "paid", "failed", "expired", "refunded"];
 const FULFILLMENT_STATUSES = ["pending", "processing", "shipped", "completed", "cancelled"];
 
 const paymentStyles = {
   pending: "bg-secondary-container text-on-secondary-container",
   paid: "bg-primary-fixed text-on-primary-fixed",
+  failed: "bg-error-container text-on-error-container",
+  expired: "bg-surface-container-high text-on-surface-variant",
   refunded: "bg-error-container text-on-error-container",
 };
 

@@ -12,7 +12,7 @@ const PILLARS = [
   {
     icon: "science",
     title: "Evidence-Based Science",
-    body: "Only FDA-approved technologies and clinically proven protocols. Our approach is grounded in rigorous medical research, so efficacy and safety come before novelty.",
+    body: "Evidence-based medicine at every step: clinically proven technologies and protocols, grounded in rigorous research, so efficacy and safety always come before novelty.",
     wide: true,
   },
   {
@@ -22,7 +22,7 @@ const PILLARS = [
   },
   {
     icon: "diamond",
-    title: "Boutique Luxury",
+    title: "Premium Luxury",
     body: "A tranquil environment designed to soothe the senses, elevating a standard medical visit into something restorative.",
   },
   {
@@ -58,7 +58,7 @@ export default function AboutUs() {
         tone="dark"
         eyebrow="Our Vision"
         title="Redefining clinical excellence"
-        lede="Where the highest standards of medical science meet the refined comfort of a luxury boutique experience."
+        lede="Where the highest standards of medical science meet the refined comfort of a premium luxury experience."
         image="https://images.unsplash.com/photo-1595871151608-bc7abd1caca3?auto=format&fit=crop&w=1600&q=85"
         imageAlt={`${BUSINESS.name} interior`}
         actions={
@@ -97,9 +97,10 @@ export default function AboutUs() {
               A new paradigm in aesthetic medicine
             </h2>
             <p className="font-body-md text-body-md text-on-surface-variant mb-6">
-              Founded on the principle that aesthetic treatments should never feel transactional,{" "}
-              {BUSINESS.shortName} was conceived as an antidote to the sterile, intimidating environments of
-              traditional clinical spaces.
+              {BUSINESS.shortName} was founded on a simple idea: medicine should help you live better for
+              longer, not just treat what's wrong today. We bring together aesthetics, longevity medicine and
+              evidence-based biohacking, from advanced diagnostics and IV therapy to regenerative skin
+              treatments, in a calm space that feels nothing like a traditional clinic.
             </p>
             <p className="font-body-md text-body-md text-on-surface-variant mb-9">
               {BUSINESS.shortName} is led by a German board-certified Family-Medicine consultant with Harvard

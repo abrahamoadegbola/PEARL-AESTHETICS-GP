@@ -5,8 +5,8 @@ import { supabase } from "./supabaseClient";
 // these functions run (they're deployed with Supabase's default JWT
 // verification, except stripe-webhook which Stripe calls directly and is
 // deployed with --no-verify-jwt instead - see supabase/functions/README).
-async function invoke(name, body) {
-  const { data, error } = await supabase.functions.invoke(name, { body });
+async function invoke(name, body, method = "POST") {
+  const { data, error } = await supabase.functions.invoke(name, method === "GET" ? { method } : { body });
   if (error) {
     // supabase-js's FunctionsHttpError puts the raw fetch Response on
     // .context, NOT the already-parsed JSON body - awaiting .json() here
@@ -27,21 +27,36 @@ async function invoke(name, body) {
   return data;
 }
 
-// items: [{ id, name, price, qty }] — price in AED major units.
-export function createCheckoutSession({ orderId, items, customerEmail }) {
-  return invoke("create-checkout-session", { orderId, items, customerEmail });
+// Only the order id goes over the wire - the function re-reads the order
+// and re-prices every item from the products table server-side, so a
+// tampered cart can't change what Stripe charges.
+export function createCheckoutSession({ orderId }) {
+  return invoke("create-checkout-session", { orderId });
 }
 
 export function getCheckoutSession(sessionId) {
   return invoke("checkout-session-status", { sessionId });
 }
 
-// booking: { id, category, date, time, name, email, phone, notes }
-export function sendBookingEmail(booking) {
-  return invoke("send-booking-email", booking);
+// Emails the patient a confirmation and notifies the clinic by email and
+// WhatsApp. Only the booking id is sent - the function loads the booking
+// itself, so it can't be used to send mail to arbitrary addresses.
+// Resolves to { email: { sent }, whatsapp: { sent } }.
+export function sendBookingNotifications(bookingId) {
+  return invoke("send-booking-email", { id: bookingId });
 }
 
 // form: { firstName, lastName, email, phone, interest, message }
 export function sendContactEmail(form) {
   return invoke("send-contact-email", form);
+}
+
+// Live @pearl_medicals posts and reels: { posts: [...] }.
+export function getInstagramFeed() {
+  return invoke("instagram-feed", undefined, "GET");
+}
+
+// Live Google rating + latest reviews: { rating, userRatingCount, reviews: [...] }.
+export function getGoogleReviews() {
+  return invoke("google-reviews", undefined, "GET");
 }

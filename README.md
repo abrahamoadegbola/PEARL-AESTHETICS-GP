@@ -64,7 +64,7 @@ supabase login
 supabase link --project-ref your-project-ref
 ```
 
-Then deploy all five functions:
+Then deploy all seven functions:
 
 ```bash
 supabase functions deploy create-checkout-session
@@ -72,7 +72,14 @@ supabase functions deploy checkout-session-status
 supabase functions deploy send-booking-email
 supabase functions deploy send-contact-email
 supabase functions deploy stripe-webhook
+supabase functions deploy instagram-feed
+supabase functions deploy google-reviews
 ```
+
+**Secrets in one go:** copy `supabase/functions/.env.example` to
+`supabase/functions/.env` (git-ignored), fill it in, then
+`supabase secrets set --env-file supabase/functions/.env`. Every secret in
+the sections below is listed there.
 
 `supabase/config.toml` already marks `stripe-webhook` as not requiring a
 Supabase JWT (Stripe calls it directly, not through a logged-in session,
@@ -96,11 +103,32 @@ supabase secrets set CLIENT_URL=https://your-real-frontend-domain.com
 - Also add `VITE_STRIPE_PUBLISHABLE_KEY=pk_test_...` to the frontend `.env`.
 
 **For the webhook** (recommended for production — it's the reliable
-confirmation path if a shopper closes their browser mid-checkout):
+confirmation path if a shopper closes their browser mid-checkout, and the
+only path for delayed payment methods and refunds):
 1. Stripe dashboard → **Developers → Webhooks → Add endpoint**
 2. URL: `https://your-project-ref.supabase.co/functions/v1/stripe-webhook`
-3. Listen for `checkout.session.completed` and `checkout.session.async_payment_succeeded`
+3. Listen for `checkout.session.completed`, `checkout.session.async_payment_succeeded`,
+   `checkout.session.async_payment_failed`, `checkout.session.expired`, `charge.refunded`
 4. Copy the signing secret: `supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...`
+
+**What checkout does:**
+- **All payment methods**: no methods are hard-coded, so Checkout offers
+  whatever is switched on under **Dashboard → Settings → Payment methods**
+  (cards, Apple Pay, Google Pay, Link, plus any BNPL/regional methods
+  Stripe supports for AED). Turning one on in the dashboard is enough.
+  Set `STRIPE_PAYMENT_METHOD_TYPES=card,link` only if you want to pin a list.
+- **Server-side pricing**: the browser sends only the order id. The
+  function re-prices every item from the `products` table, checks stock,
+  and charges items + 5% VAT + delivery (free over AED 500), the same
+  totals the cart shows. Earlier versions charged items only.
+- **Confirmation**: the order flips to `paid` exactly once (the success page
+  and the webhook can't double-count stock), then the shopper gets an
+  order-confirmation email and the clinic gets an email + WhatsApp alert.
+  Stripe also sends its own receipt.
+- **Statuses** (`failed`, `expired`, `refunded`) are set automatically from
+  webhook events and show in **Admin → Orders**.
+- Optional: `STRIPE_ALLOW_PROMOTION_CODES=true` (promo-code box),
+  `STRIPE_INVOICES=true` (PDF invoice per payment, Stripe Invoicing fees apply).
 
 Until Stripe keys are set, "Pay with Card" shows a clear message and
 "Place Order via WhatsApp" still works as a no-card-required fallback.
@@ -155,6 +183,117 @@ details) — edit the shell once and every email updates.
 > (The email shown *on* the site itself comes from `src/data/business.js`,
 > a separate thing to update too.)
 
+## 6. Booking notifications (email + WhatsApp)
+
+When a patient confirms a booking, `send-booking-email` runs server-side and:
+1. emails the **patient** a branded confirmation (with WhatsApp + directions buttons),
+2. emails the **clinic** (`CLINIC_NOTIFY_EMAIL`),
+3. sends a **WhatsApp alert** to the clinic's number (`CLINIC_WHATSAPP_NUMBER`).
+
+The browser only sends the booking id; the function loads the booking
+itself, so it can't be abused to send email to arbitrary addresses, and
+`bookings.notified_at` stops repeats. Each channel works on its own:
+a missing WhatsApp setup never blocks the email.
+
+**WhatsApp alerts** use Meta's WhatsApp Cloud API, the only official way
+for a server to *send* WhatsApp messages:
+1. [developers.facebook.com](https://developers.facebook.com) → create an app → add **WhatsApp**.
+2. Add and verify the sending phone number. It must be a number that is
+   **not** already on the WhatsApp app (a second SIM or landline works);
+   alerts are delivered *to* the clinic's normal WhatsApp, +971 55 963 9972.
+3. Create a permanent token (Business Settings → System Users → generate
+   a token with `whatsapp_business_messaging`).
+4. ```bash
+   supabase secrets set WHATSAPP_TOKEN=EAAG...
+   supabase secrets set WHATSAPP_PHONE_NUMBER_ID=1234567890
+   supabase secrets set CLINIC_WHATSAPP_NUMBER=971559639972
+   ```
+5. **Recommended:** WhatsApp only delivers free-form text if the recipient
+   messaged the business number in the last 24h. For alerts that always
+   arrive, create a *Utility* message template in WhatsApp Manager and set
+   its name:
+   - `WHATSAPP_BOOKING_TEMPLATE`, with body variables in this order:
+     `{{1}}` name, `{{2}}` category, `{{3}}` date, `{{4}}` time, `{{5}}` phone, `{{6}}` reference, `{{7}}` doctor.
+     Example body: *New booking: {{1}} - {{2}} on {{3}} at {{4}}. Phone {{5}}. Ref {{6}}. Doctor: {{7}}.*
+   - `WHATSAPP_ORDER_TEMPLATE` (paid shop orders): `{{1}}` order id, `{{2}}` customer, `{{3}}` total, `{{4}}` phone, `{{5}}` address.
+
+The patient-facing "Confirm on WhatsApp" button on the booking screen
+still works as before, with no setup needed.
+
+## 7. Instagram feed (gallery, results, facilities)
+
+The Results Gallery, the Home page results strip and the Facilities
+section all come from **@pearl_medicals**. With a token set, the
+`instagram-feed` function syncs the latest 30 posts and reels, so
+**anything new posted on Instagram appears on the site automatically**
+(within about 15 minutes of the next visit).
+
+Each new reel's video and cover are copied once into the public
+`instagram` Storage bucket (`instagram_posts` table), and the site plays
+them in its own full-screen player: swipe between videos, tap to pause,
+"Book a consultation" button, no Instagram branding. Posts deleted on
+Instagram disappear from the site, and their files are removed, on the next sync.
+Run `supabase/schema.sql` again to create the table and bucket.
+
+**Optional: hourly sync without visitors.** In the SQL editor, enable the
+`pg_cron` and `pg_net` extensions, then:
+
+```sql
+select cron.schedule('instagram-sync', '0 * * * *', $$
+  select net.http_post(
+    url := 'https://<project-ref>.supabase.co/functions/v1/instagram-feed?sync=1',
+    headers := '{"Authorization": "Bearer <anon-key>"}'::jsonb
+  );
+$$);
+```
+
+Without a token, the site uses the 11 posts saved in `public/instagram/`
+(`src/data/instagram.js`), downloaded on 2026-10-28, including the 7
+reels' video files, so videos play in the site's own player either way.
+To hide a post everywhere (saved and live), add its shortcode to
+`HIDDEN_POSTS` in `src/data/instagram.js`.
+
+**Get a token** (the Instagram account must be a Business or Creator account):
+1. [developers.facebook.com](https://developers.facebook.com) → create an app →
+   add **Instagram** → *API setup with Instagram login*.
+2. Connect the `pearl_medicals` account, then **Generate token**. This
+   gives a long-lived token (60 days).
+3. `supabase secrets set INSTAGRAM_ACCESS_TOKEN=IGAA...`
+
+The function refreshes the token itself weekly and stores the fresh one
+in the private `app_settings` table, so it doesn't lapse as long as the
+site gets visitors. Setting a new secret always takes over.
+
+**How posts get sorted.** The function reads each caption. To control
+where a post lands, include these in the caption:
+
+| In the caption | Shows in |
+|---|---|
+| `before & after`, `#results`, `#beforeandafter` | Patient Results (Home + gallery) |
+| `#facilities`, `#ourclinic`, `#clinictour` | Facilities section on Home |
+| `#event`, `#healthtips`, `#team` | Gallery filters |
+
+All reels show under the **Reels** filter. Facilities fall back to the saved
+photos until at least three live posts carry a facilities tag.
+
+## 8. Google reviews
+
+The Home page shows **real Google reviews**. Four are saved in
+`src/data/business.js` (copied verbatim from the listing). With an
+API key, the `google-reviews` function shows the live rating, review count
+and latest reviews instead (cached 6 hours):
+1. Google Cloud console → enable **Places API (New)** → create an API key
+   restricted to that API.
+2. `supabase secrets set GOOGLE_PLACES_API_KEY=AIza...`
+
+Google returns at most 5 reviews per place, so the section also links to
+**Read all reviews** and **Leave a review** on Google. The clinic's place ID
+(`ChIJickRNwBtXz4RtS60CfrdqnY`) is already set.
+
+Every location mention on the site (the hero pill, the Facilities "Visit us"
+card, the FAQ, the footer and the contact page) opens the clinic's Google Maps
+listing (`BUSINESS.address.mapsUrl`).
+
 ## Why secrets go through `supabase secrets set`, not your hosting provider
 
 If you're deploying the frontend to Netlify (or Vercel, etc.), it's worth
@@ -187,7 +326,20 @@ supabase secrets set SMTP_USER=youraddress@gmail.com
 supabase secrets set SMTP_PASS=your-16-character-app-password
 supabase secrets set SMTP_FROM=youraddress@gmail.com      # optional, defaults to SMTP_USER
 supabase secrets set CLINIC_NOTIFY_EMAIL=info@pearlaestheticgp.com
+
+# WhatsApp alerts (optional)
+supabase secrets set WHATSAPP_TOKEN=EAAG...
+supabase secrets set WHATSAPP_PHONE_NUMBER_ID=1234567890
+supabase secrets set WHATSAPP_BOOKING_TEMPLATE=new_booking_alert   # recommended
+supabase secrets set WHATSAPP_ORDER_TEMPLATE=paid_order_alert      # recommended
+
+# Instagram + Google (optional)
+supabase secrets set INSTAGRAM_ACCESS_TOKEN=IGAA...
+supabase secrets set GOOGLE_PLACES_API_KEY=AIza...
 ```
+
+Or all at once from a file: `supabase secrets set --env-file supabase/functions/.env`
+(template: `supabase/functions/.env.example`).
 
 Check what's set (values are hidden, names aren't):
 ```bash
@@ -238,7 +390,9 @@ directly from the clinic's own live site — first-party content about
 Pearl's own real, practicing team:
 
 - **Dr. Hamid O. Balogun** — CEO & Founder, German board-certified Family
-  Medicine (Harvard Medical School postgraduate training)
+  Medicine (Harvard Medical School postgraduate training). His biography
+  draws on his LinkedIn headline and the German physician registries, and
+  his badge reads "German Board-Certified" rather than "DHA Licensed"
 - **Dr. Priscilla Puspam** — GP / Medical Director, MBBS, DHA-licensed
 - **Dr. Wafa Shah** — GP Aesthetics
 - **Dr. Shaima Adil** — Beauty & Laser Therapy
@@ -249,15 +403,12 @@ specific education history for a doctor, that section is left out rather
 than invented. If you have fuller CVs, add them to each doctor's
 `education` array and the profile pages render a timeline automatically.
 
-## Results Gallery & before/after images — read before launch
+## Results Gallery & before/after images
 
-`/results` and the "Before Treatment" / "After Treatment" photos on the
-HydraFacial detail page are still placeholder images from the original
-design template. These are explicitly captioned as specific patients'
-results — labeling any stock photo as a real patient's outcome fabricates
-a clinical result, which is a compliance issue, not just a cosmetic one.
-**This needs real, consented patient photos (or should stay down) before
-launch.**
+`/results` and the Home results strip now show **real patient results and
+reels from the clinic's own Instagram** (see §7), not stock photos. The
+before/after photos on the HydraFacial detail page are still template
+placeholders and need real, consented patient photos before launch.
 
 ## Admin panel — `/admin`
 
@@ -286,7 +437,7 @@ added (a bucket + upload UI) — happy to add that as a follow-up.
 
 ## Before this goes live — checklist
 
-1. **Results Gallery / before-after photos** — need real, consented patient photos.
+1. **HydraFacial before/after photos** — still placeholders; need real, consented patient photos.
 2. **`CLINIC_NOTIFY_EMAIL`** — confirm the real inbox.
 3. **Stripe** — switch test → live keys when ready.
 4. A few pages (Insights & Advice, Special Offers) still have illustrative
@@ -411,6 +562,6 @@ added (a bucket + upload UI) — happy to add that as a follow-up.
 - `src/pages/admin/` — admin login, layout, dashboard, bookings, orders,
   inventory
 - `supabase/schema.sql` — run once in the SQL Editor (§1)
-- `supabase/functions/` — the five Edge Functions (§3), plus `_shared/`
-  for the CORS headers, Stripe client, Supabase admin client, mailer
-  helper, and the branded `emailTemplate.ts` they all import from
+- `supabase/functions/` — the seven Edge Functions (§3), plus `_shared/`
+  for the CORS headers, Stripe client, Supabase admin client, mailer,
+  WhatsApp sender, order notifications, and the branded `emailTemplate.ts`

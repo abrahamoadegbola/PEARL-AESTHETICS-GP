@@ -4,9 +4,12 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { addBooking } from "../lib/db";
 import Reveal from "../components/motion/Reveal";
 import { buildWhatsAppLink, bookingWhatsAppMessage } from "../lib/whatsapp";
-import { sendBookingEmail } from "../lib/api";
+import { sendBookingNotifications } from "../lib/api";
 import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
 import DOCTORS from "../data/doctors";
+import DatePicker, { formatLongDate } from "../components/form/DatePicker";
+import TimeSlots, { formatTime } from "../components/form/TimeSlots";
+import Field from "../components/form/Field";
 
 const CATEGORIES = [
   {
@@ -72,9 +75,24 @@ export default function BookConsultation() {
     setStep(2);
   };
 
+  const [detailsError, setDetailsError] = useState("");
+
   const handleContinue = (e) => {
     e.preventDefault();
+    // The calendar and slots aren't native inputs, so the browser's
+    // `required` check can't cover them - check them here instead.
+    if (!details.date || !details.time) {
+      setDetailsError(!details.date ? "Please choose a date." : "Please choose a time.");
+      return;
+    }
+    setDetailsError("");
     setStep(3);
+  };
+
+  const setDate = (date) => setDetails((d) => ({ ...d, date, time: "" }));
+  const setTime = (time) => {
+    setDetails((d) => ({ ...d, time }));
+    setDetailsError("");
   };
 
   const [bookingError, setBookingError] = useState("");
@@ -97,9 +115,11 @@ export default function BookConsultation() {
       setBooking(record);
       setStep(4);
 
+      // Email to the patient + email/WhatsApp to the clinic, all server-side.
+      // The booking is already saved either way, so this never blocks step 4.
       setEmailStatus("sending");
-      sendBookingEmail(record)
-        .then(() => setEmailStatus("sent"))
+      sendBookingNotifications(record.id)
+        .then((result) => setEmailStatus(result?.email?.sent ? "sent" : "failed"))
         .catch(() => setEmailStatus("failed"));
     } catch (err) {
       setBookingError(err.message);
@@ -199,129 +219,83 @@ export default function BookConsultation() {
           key="step-2"
           {...stepMotion}
           onSubmit={handleContinue}
-          className="w-full max-w-2xl bg-surface-container-lowest rounded-xl p-8 md:p-10 border border-outline-variant/30 space-y-6"
+          className="w-full max-w-5xl space-y-10"
         >
-          <div className="flex items-center gap-3 mb-2">
-            <span className="material-symbols-outlined text-primary">{category.icon}</span>
-            <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest">
-              {category.title}
+          <div className="flex flex-wrap items-center gap-3 rounded-full bg-surface-container-low border border-outline-variant/40 pl-2 pr-5 py-2 w-fit mx-auto">
+            <span className="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center">
+              <span className="material-symbols-outlined text-[20px]">{category.icon}</span>
             </span>
+            <span className="font-label-caps text-label-caps text-primary uppercase tracking-widest">{category.title}</span>
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="ml-auto text-on-surface-variant hover:text-primary text-label-caps font-label-caps underline"
+              className="text-on-surface-variant hover:text-primary text-label-caps font-label-caps underline underline-offset-2"
             >
               Change
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="font-label-caps text-label-caps text-on-surface" htmlFor="date">
-                Preferred Date
-              </label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/70 text-[20px] pointer-events-none">
-                  calendar_month
-                </span>
-                <input
-                  className="styled-date-input w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-11 pr-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
-                  id="date"
-                  name="date"
-                  type="date"
-                  required
-                  value={details.date}
-                  onChange={handleChange}
-                />
+          {/* Date + time, side by side on desktop */}
+          <section>
+            <h2 className="font-headline-sm text-headline-sm text-primary mb-1">When would you like to come in?</h2>
+            <p className="font-body-md text-body-md text-on-surface-variant mb-6">
+              We're open every day, 8AM to 10PM. Pick a time that suits you and we'll confirm it.
+            </p>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+              <div className="lg:col-span-6">
+                <DatePicker value={details.date} onChange={setDate} />
+              </div>
+              <div className="lg:col-span-6">
+                {details.date && (
+                  <p className="font-serif-display text-xl text-primary font-medium mb-5">{formatLongDate(details.date)}</p>
+                )}
+                <TimeSlots value={details.time} onChange={setTime} date={details.date} />
               </div>
             </div>
-            <div className="space-y-2">
-              <label className="font-label-caps text-label-caps text-on-surface" htmlFor="time">
-                Preferred Time
-              </label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/70 text-[20px] pointer-events-none">
-                  schedule
-                </span>
-                <input
-                  className="styled-time-input w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-11 pr-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-colors"
-                  id="time"
-                  name="time"
-                  type="time"
-                  required
-                  value={details.time}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-          </div>
+          </section>
 
-          <div className="space-y-2">
-            <label className="font-label-caps text-label-caps text-on-surface" htmlFor="name">
-              Full Name
-            </label>
-            <input
-              className="w-full bg-transparent border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-0 py-2 font-body-md text-body-md text-on-surface transition-colors"
-              id="name"
-              name="name"
-              type="text"
-              required
-              value={details.name}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="font-label-caps text-label-caps text-on-surface" htmlFor="email">
-                Email
-              </label>
-              <input
-                className="w-full bg-transparent border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-0 py-2 font-body-md text-body-md text-on-surface transition-colors"
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={details.email}
+          <section className="rounded-2xl bg-surface-container-lowest border border-outline-variant/40 p-6 md:p-10 shadow-[0_12px_40px_-16px_rgba(14,58,48,0.12)]">
+            <h2 className="font-headline-sm text-headline-sm text-primary mb-1">Your details</h2>
+            <p className="font-body-md text-body-md text-on-surface-variant mb-7">
+              So we can confirm your appointment. We never share your details.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <Field id="name" label="Full name" icon="person" required autoComplete="name" value={details.name} onChange={handleChange} className="md:col-span-2" />
+              <Field id="email" label="Email" icon="mail" type="email" required autoComplete="email" value={details.email} onChange={handleChange} />
+              <Field id="phone" label="Phone / WhatsApp" icon="call" type="tel" required autoComplete="tel" value={details.phone} onChange={handleChange} />
+              <Field
+                id="notes"
+                label="Anything we should know?"
+                icon="edit_note"
+                multiline
+                optional
+                rows={3}
+                value={details.notes}
                 onChange={handleChange}
+                className="md:col-span-2"
               />
             </div>
-            <div className="space-y-2">
-              <label className="font-label-caps text-label-caps text-on-surface" htmlFor="phone">
-                Phone
-              </label>
-              <input
-                className="w-full bg-transparent border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-0 py-2 font-body-md text-body-md text-on-surface transition-colors"
-                id="phone"
-                name="phone"
-                type="tel"
-                required
-                value={details.phone}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
+          </section>
 
-          <div className="space-y-2">
-            <label className="font-label-caps text-label-caps text-on-surface" htmlFor="notes">
-              Notes (Optional)
-            </label>
-            <textarea
-              className="w-full bg-transparent border-0 border-b border-outline-variant focus:border-primary focus:ring-0 px-0 py-2 font-body-md text-body-md text-on-surface transition-colors resize-none"
-              id="notes"
-              name="notes"
-              rows="3"
-              value={details.notes}
-              onChange={handleChange}
-            />
-          </div>
+          {detailsError && (
+            <p className="text-center text-error font-body-md text-body-md" role="alert">
+              {detailsError}
+            </p>
+          )}
 
-          <button
-            type="submit"
-            className="w-full bg-primary text-on-primary py-4 rounded font-label-caps text-label-caps uppercase tracking-widest hover:bg-primary-container transition-colors active:scale-[0.98]"
-          >
-            Review Booking
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="font-body-md text-sm text-on-surface-variant flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px] text-secondary">verified</span>
+              Your first consultation is complimentary.
+            </p>
+            <button
+              type="submit"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary text-on-primary px-10 py-4 rounded-full font-label-caps text-label-caps uppercase tracking-widest hover:bg-primary-container transition-colors active:scale-[0.98] shadow-lg shadow-primary/20"
+            >
+              Review Booking
+              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </button>
+          </div>
         </motion.form>
       )}
 
@@ -345,11 +319,11 @@ export default function BookConsultation() {
             )}
             <div className="flex justify-between border-b border-outline-variant/30 pb-3">
               <dt className="text-on-surface-variant">Date</dt>
-              <dd className="text-primary font-medium">{details.date}</dd>
+              <dd className="text-primary font-medium text-right">{formatLongDate(details.date)}</dd>
             </div>
             <div className="flex justify-between border-b border-outline-variant/30 pb-3">
               <dt className="text-on-surface-variant">Time</dt>
-              <dd className="text-primary font-medium">{details.time}</dd>
+              <dd className="text-primary font-medium">{formatTime(details.time)}</dd>
             </div>
             <div className="flex justify-between border-b border-outline-variant/30 pb-3">
               <dt className="text-on-surface-variant">Name</dt>
@@ -395,7 +369,7 @@ export default function BookConsultation() {
           <h2 className="font-headline-md text-headline-md text-primary">Booking Received</h2>
           <p className="font-body-md text-body-md text-on-surface-variant">
             Thank you, {booking.name}. Your request for {booking.category}
-            {booking.doctor ? ` with ${booking.doctor}` : ""} on {booking.date} at {booking.time} has been
+            {booking.doctor ? ` with ${booking.doctor}` : ""} on {formatLongDate(booking.date)} at {formatTime(booking.time)} has been
             received (Ref: {booking.id}). Our team will confirm shortly — for the fastest confirmation,
             message us on WhatsApp now.
           </p>

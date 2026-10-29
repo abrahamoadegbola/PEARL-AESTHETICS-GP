@@ -27,6 +27,9 @@ const CLINIC_FULL_NAME = "Pearl Aesthetics & GP Medical Clinic";
 const CLINIC_ADDRESS = "Shop 3, Mayas Geneva Building, JVC, Dubai";
 const CLINIC_PHONE = "+971 55 963 9972";
 const CLINIC_WEBSITE = "pearlaestheticgp.com";
+export const CLINIC_MAPS_URL =
+  "https://www.google.com/maps/place/3633%2BMXC+Pearl+Aesthetics+and+GP+Medical+Clinic+L.L.C+-+Al+Barsha+South+Fourth+-+Jumeirah+Village+Circle+-+Dubai/data=!4m2!3m1!1s0x3e5f6d003711c989:0x76aaddfa09b42eb5";
+export const CLINIC_WHATSAPP_URL = "https://wa.me/971559639972";
 
 export function escapeHtml(str = "") {
   return String(str).replace(
@@ -55,6 +58,20 @@ export function renderFieldTable(rows: [string, string | undefined | null][]) {
     .join("");
 
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${COLORS.border};border-radius:8px;overflow:hidden;border-collapse:collapse;">${trs}</table>`;
+}
+
+// A bulletproof-ish email button (table cell with a background color, so
+// Outlook still renders it as a button even though it ignores padding on <a>).
+export function renderButton(label: string, href: string, { gold = false } = {}) {
+  const bg = gold ? COLORS.gold : COLORS.primary;
+  const fg = gold ? COLORS.onGold : COLORS.onPrimary;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:8px 8px 0 0;display:inline-table;">
+    <tr>
+      <td style="background-color:${bg};border-radius:6px;">
+        <a href="${escapeHtml(href)}" style="display:inline-block;padding:12px 22px;font-family:${BODY_FONT};font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:${fg};text-decoration:none;">${escapeHtml(label)}</a>
+      </td>
+    </tr>
+  </table>`;
 }
 
 // Wraps a block of inner HTML (paragraphs, the field table, etc.) in the
@@ -114,7 +131,7 @@ export function renderEmailShell({
                   ${CLINIC_FULL_NAME}
                 </p>
                 <p style="margin:0 0 4px;font-family:${BODY_FONT};font-size:12px;color:${COLORS.textMuted};">
-                  ${CLINIC_ADDRESS}
+                  <a href="${CLINIC_MAPS_URL}" style="color:${COLORS.textMuted};">${CLINIC_ADDRESS}</a>
                 </p>
                 <p style="margin:0;font-family:${BODY_FONT};font-size:12px;color:${COLORS.textMuted};">
                   ${CLINIC_PHONE} &nbsp;·&nbsp; ${CLINIC_WEBSITE}

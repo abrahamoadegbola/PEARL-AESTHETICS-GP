@@ -75,6 +75,9 @@ create table if not exists public.bookings (
 -- Safe to re-run against a database that already has the bookings table
 -- from before the `doctor` column existed.
 alter table public.bookings add column if not exists doctor text;
+-- Set by the send-booking-email function once the patient/clinic have been
+-- notified, so the notification can't be triggered twice for one booking.
+alter table public.bookings add column if not exists notified_at timestamptz;
 
 -- ============================================================
 -- ORDERS (shop checkout)
@@ -88,12 +91,18 @@ create table if not exists public.orders (
   tax numeric(10, 2) not null default 0,
   total numeric(10, 2) not null default 0,
   payment_method text not null default 'whatsapp' check (payment_method in ('whatsapp', 'stripe')),
-  payment_status text not null default 'pending' check (payment_status in ('pending', 'paid', 'refunded')),
+  payment_status text not null default 'pending'
+    check (payment_status in ('pending', 'paid', 'failed', 'expired', 'refunded')),
   fulfillment_status text not null default 'pending'
     check (fulfillment_status in ('pending', 'processing', 'shipped', 'completed', 'cancelled')),
   stripe_session_id text,
   created_at timestamptz not null default now()
 );
+-- Safe to re-run against an orders table created before 'failed'/'expired'
+-- existed (Stripe webhook: async payment failed / checkout abandoned).
+alter table public.orders drop constraint if exists orders_payment_status_check;
+alter table public.orders add constraint orders_payment_status_check
+  check (payment_status in ('pending', 'paid', 'failed', 'expired', 'refunded'));
 
 -- ============================================================
 -- updated_at trigger for products
@@ -246,6 +255,32 @@ create policy "admin can delete orders"
 -- bypasses RLS entirely - that's expected and is why the service_role
 -- key must never reach the browser (it's auto-injected into Edge
 -- Functions by Supabase, not something you set yourself).
+
+-- ============================================================
+-- APP SETTINGS (server-side only - e.g. the auto-refreshed Instagram token)
+-- RLS on with no policies: only Edge Functions (service_role) can touch it.
+-- ============================================================
+create table if not exists public.app_settings (
+  key text primary key,
+  value text,
+  updated_at timestamptz not null default now()
+);
+alter table public.app_settings enable row level security;
+
+-- Reels and posts copied from @pearl_medicals by the instagram-feed
+-- function. Videos and covers live in the public `instagram` Storage
+-- bucket so the site plays them from its own storage, never Instagram's.
+-- Service-role only (no policies): the function serves them to the site.
+create table if not exists public.instagram_posts (
+  id text primary key,
+  post jsonb not null,
+  taken_at timestamptz not null
+);
+alter table public.instagram_posts enable row level security;
+
+insert into storage.buckets (id, name, public)
+values ('instagram', 'instagram', true)
+on conflict (id) do nothing;
 
 -- ============================================================
 -- Seed data - remove or edit before going live

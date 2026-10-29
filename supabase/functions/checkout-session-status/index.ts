@@ -1,6 +1,7 @@
 import { corsHeaders } from "../_shared/cors.ts";
 import { stripe, isStripeConfigured } from "../_shared/stripeClient.ts";
-import { markOrderPaid, getOrderById } from "../_shared/supabaseAdmin.ts";
+import { markOrderPaid, getOrderById, paidExtras } from "../_shared/supabaseAdmin.ts";
+import { sendOrderPaidNotifications } from "../_shared/orderNotifications.ts";
 
 function mapOrder(order: Record<string, unknown> | null) {
   if (!order) return null;
@@ -54,7 +55,16 @@ Deno.serve(async (req: Request) => {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     const orderId = session.metadata?.orderId;
 
-    const order = session.payment_status === "paid" ? await markOrderPaid(orderId) : await getOrderById(orderId);
+    let order;
+    if (session.payment_status === "paid") {
+      const result = await markOrderPaid(orderId, paidExtras(session));
+      order = result.order;
+      // Only the call that actually flipped the order sends the receipt -
+      // if the webhook got there first, this is a no-op.
+      if (result.changed && order) await sendOrderPaidNotifications(order);
+    } else {
+      order = await getOrderById(orderId);
+    }
 
     return new Response(
       JSON.stringify({

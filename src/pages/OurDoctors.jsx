@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import DOCTORS from "../data/doctors";
 import PageHero from "../components/PageHero";
+import { DoctorPortraits } from "../components/HeroVisuals";
 import FilterPills from "../components/FilterPills";
 import CTABand from "../components/CTABand";
 import Reveal from "../components/motion/Reveal";
@@ -14,14 +15,21 @@ const FILTERS = [
 
 export default function OurDoctors() {
   const [filter, setFilter] = useState("all");
-  const visibleDoctors = filter === "all" ? DOCTORS : DOCTORS.filter((d) => d.specialty === filter);
+  const visibleDoctors = filter === "all" ? DOCTORS : DOCTORS.filter((d) => [].concat(d.specialty).includes(filter));
 
   return (
     <>
       <PageHero
+        tone="surface"
+        surface="champagne"
         eyebrow="The Team"
-        title="Our medical experts"
-        lede="DHA-licensed physicians, internationally trained and board-certified — the people who will actually be treating you."
+        title={
+          <>
+            Our medical <span className="font-serif-display italic font-medium">experts</span>
+          </>
+        }
+        visual={<DoctorPortraits />}
+        lede="Internationally trained, board-certified physicians in a DHA-licensed clinic — the people who will actually be treating you."
       >
         <FilterPills
           options={FILTERS}
@@ -31,7 +39,7 @@ export default function OurDoctors() {
         />
       </PageHero>
 
-      <section className="max-w-container-max mx-auto px-gutter pb-section-padding-mobile md:pb-section-padding-desktop">
+      <section className="max-w-container-max mx-auto px-gutter pt-16 md:pt-24 pb-section-padding-mobile md:pb-section-padding-desktop">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
           {visibleDoctors.map((doc, i) => (
             <Reveal key={doc.id} delay={0.06 * (i % 3)} as="div">

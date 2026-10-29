@@ -5,11 +5,21 @@ import useDbCollection from "../hooks/useDbCollection";
 import { getActiveProducts } from "../lib/db";
 import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
 import PageHero from "../components/PageHero";
+import { ProductTrio } from "../components/HeroVisuals";
 import CTABand from "../components/CTABand";
 import Reveal from "../components/motion/Reveal";
 import { useCart } from "../context/CartContext";
 
-const CONCERNS = ["Anti-Aging", "Hydration", "Brightening", "Acne & Pores"];
+// Each concern has its own soft tint, used on its filter pill and behind
+// matching product photos - enough colour to make the shelf feel alive
+// without every card shouting.
+const CONCERNS = [
+  { name: "Anti-Aging", icon: "auto_awesome", tint: "bg-[#f6e3dc]", ring: "border-[#e7c3b6]" },
+  { name: "Hydration", icon: "water_drop", tint: "bg-[#dcefe8]", ring: "border-[#b4d9cb]" },
+  { name: "Brightening", icon: "light_mode", tint: "bg-[#f8ecd0]", ring: "border-[#ecd49a]" },
+  { name: "Acne & Pores", icon: "spa", tint: "bg-[#e3ebdf]", ring: "border-[#c3d3bb]" },
+];
+const tintFor = (concern) => CONCERNS.find((c) => c.name === concern)?.tint || "bg-surface-container-low";
 
 const SORTS = [
   { value: "recommended", label: "Recommended" },
@@ -49,63 +59,58 @@ export default function SkincareBoutique() {
   return (
     <>
       <PageHero
+        tone="surface"
+        surface="blush"
         eyebrow="The Boutique"
-        title="Curated skincare"
-        lede="Medical-grade formulations chosen by our clinical team — the same products we use and recommend after treatment."
-      />
+        title={
+          <>
+            Curated <span className="font-serif-display italic font-medium">skincare</span>
+          </>
+        }
+        lede="Medical-grade formulations chosen by our doctors: the same products we use in clinic and recommend after treatment."
+        visual={<ProductTrio products={products} />}
+      >
+        <p className="font-label-caps text-label-caps uppercase tracking-widest text-primary/70 mb-4">Shop by concern</p>
+        <div className="flex flex-wrap gap-2.5" role="group" aria-label="Filter by skin concern">
+          {CONCERNS.map((c) => {
+            const active = activeConcerns.includes(c.name);
+            return (
+              <button
+                key={c.name}
+                type="button"
+                onClick={() => toggleConcern(c.name)}
+                aria-pressed={active}
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2.5 font-label-caps text-label-caps uppercase tracking-widest transition-all active:scale-95 ${
+                  active
+                    ? "bg-primary border-primary text-on-primary shadow-lg shadow-primary/20"
+                    : `${c.tint} ${c.ring} text-primary hover:border-primary`
+                }`}
+              >
+                <span className="material-symbols-outlined text-[18px]">{active ? "check" : c.icon}</span>
+                {c.name}
+              </button>
+            );
+          })}
+          {activeConcerns.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setActiveConcerns([])}
+              className="px-3 font-label-caps text-label-caps uppercase tracking-widest text-primary underline underline-offset-4"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </PageHero>
 
       <div className="max-w-container-max mx-auto px-gutter">
         <SupabaseSetupNotice />
       </div>
 
       <section className="max-w-container-max mx-auto px-gutter pb-section-padding-mobile md:pb-section-padding-desktop">
-        <div className="flex flex-col md:flex-row gap-gutter md:gap-16">
-          {/* ---------- FILTERS ---------- */}
-          <aside className="w-full md:w-56 flex-shrink-0">
-            <div className="md:sticky md:top-32 space-y-10">
-              <div>
-                <h2 className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-[0.25em] mb-5">
-                  Category
-                </h2>
-                <p className="font-body-md text-body-md text-primary font-medium">Skincare</p>
-              </div>
-
-              <div>
-                <h2 className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-[0.25em] mb-5">
-                  Skin Concern
-                </h2>
-                <ul className="space-y-3.5">
-                  {CONCERNS.map((concern) => (
-                    <li key={concern}>
-                      <label className="flex items-center gap-3 cursor-pointer group">
-                        <input
-                          className="form-checkbox text-primary border-outline-variant focus:ring-primary rounded-sm h-4 w-4"
-                          type="checkbox"
-                          checked={activeConcerns.includes(concern)}
-                          onChange={() => toggleConcern(concern)}
-                        />
-                        <span className="font-body-md text-body-md text-on-surface-variant group-hover:text-primary transition-colors">
-                          {concern}
-                        </span>
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-                {activeConcerns.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setActiveConcerns([])}
-                    className="mt-6 font-label-caps text-label-caps text-primary uppercase tracking-widest underline underline-offset-4"
-                  >
-                    Clear filters
-                  </button>
-                )}
-              </div>
-            </div>
-          </aside>
-
+        <div className="pt-14 md:pt-20">
           {/* ---------- GRID ---------- */}
-          <div className="flex-grow min-w-0">
+          <div>
             <div className="flex flex-wrap gap-4 justify-between items-center mb-10 pb-5 border-b border-outline-variant/40">
               <span className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
                 {filtered.length} product{filtered.length === 1 ? "" : "s"}
@@ -138,16 +143,16 @@ export default function SkincareBoutique() {
             )}
 
             {!loading && !error && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-gutter">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
                 {filtered.map((product, i) => (
                   <Reveal key={product.id} delay={0.06 * (i % 3)} as="div">
-                    <div className="group flex flex-col h-full bg-surface-container-lowest rounded-xl overflow-hidden border border-outline-variant/30 transition-all duration-500 hover:border-primary/25 hover:shadow-xl hover:shadow-primary/5">
+                    <div className="group flex flex-col h-full bg-surface-container-lowest rounded-2xl overflow-hidden border border-outline-variant/30 transition-all duration-500 hover:-translate-y-1 hover:border-primary/25 hover:shadow-2xl hover:shadow-primary/10">
                       <Link
                         to={`/shop/${product.id}`}
-                        className="relative aspect-square bg-surface-container-low flex items-center justify-center overflow-hidden"
+                        className={`relative aspect-square ${tintFor(product.concern)} flex items-center justify-center overflow-hidden`}
                       >
                         <img
-                          className="object-contain h-full w-full p-10 transition-transform duration-700 ease-out group-hover:scale-105"
+                          className="object-cover h-[78%] w-[78%] rounded-xl shadow-lg shadow-black/10 transition-transform duration-700 ease-out group-hover:scale-105"
                           alt={product.name}
                           src={product.image}
                           loading="lazy"
@@ -165,6 +170,11 @@ export default function SkincareBoutique() {
                       </Link>
 
                       <div className="p-6 flex flex-col flex-grow">
+                        {product.concern && (
+                          <span className="font-label-caps text-[11px] uppercase tracking-[0.2em] text-secondary mb-2">
+                            {product.concern}
+                          </span>
+                        )}
                         {product.reviews > 0 && (
                           <div className="flex items-center gap-1 mb-3 text-secondary">
                             {Array.from({ length: 5 }).map((_, s) => (

@@ -94,12 +94,15 @@ export default function Contact() {
               <h2 className="font-headline-sm text-headline-sm text-primary mb-5">{BUSINESS.name}</h2>
               <p className="font-body-md text-body-md text-on-surface-variant flex items-start gap-3 mb-6">
                 <span className="material-symbols-outlined text-[20px] text-outline mt-0.5">location_on</span>
-                <span>
+                <a href={BUSINESS.address.mapsUrl} target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">
                   {BUSINESS.address.line1},<br />
                   {BUSINESS.address.line2}
                   <br />
                   {BUSINESS.address.city}, {BUSINESS.address.country}
-                </span>
+                  <span className="block mt-2 font-label-caps text-label-caps uppercase tracking-widest text-primary underline underline-offset-4">
+                    Get directions
+                  </span>
+                </a>
               </p>
 
               <div className="flex flex-col gap-3">

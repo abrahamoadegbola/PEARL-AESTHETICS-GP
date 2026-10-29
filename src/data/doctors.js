@@ -17,21 +17,34 @@ const DOCTORS = [
   {
     id: "hamid-balogun",
     name: "Dr. Hamid O. Balogun",
-    credentials: "German Board-Certified, Family Medicine",
+    credentials: "Consultant, Family Medicine & Aesthetics · German Board-Certified",
     title: "CEO & Founder",
-    specialty: "gp",
-    badge: "DHA Licensed",
-    badgeIcon: "verified",
+    // Listed under both filters on /doctors.
+    specialty: ["gp", "aesthetics"],
+    // Deliberately not "DHA Licensed" - his accreditation is German
+    // (Facharzt für Allgemeinmedizin), so the badge says that instead.
+    badge: "German Board-Certified",
+    badgeIcon: "workspace_premium",
     cardBio:
-      "German board-certified Family Medicine consultant with postgraduate training from Harvard Medical School. Principal owner of two private clinics in Germany.",
+      "Consultant in Family Medicine and Aesthetics, German board-certified, with postgraduate training from Harvard Medical School. Principal owner of two private practices in Germany.",
     experience: "Founder & Principal Owner",
-    languages: "English, German, Arabic",
+    languages: "English, German, Arabic, Yoruba, Russian",
     cardImage: "https://amazing-ganache-b98cf4.netlify.app/assets/doc-balogun.jpg",
     heroImage: "https://amazing-ganache-b98cf4.netlify.app/assets/doc-balogun.jpg",
+    // Sourced from his LinkedIn headline (Hamid Oladipupo Balogun, MD), the
+    // clinic's own site, and Germany's public physician registries
+    // (arzt-auskunft.de / KV Baden-Württemberg). Nothing here goes beyond
+    // what those sources state.
     bio: [
-      "Dr. Hamid O. Balogun is the CEO and Founder of Pearl Aesthetics & GP Medical Clinic. He is a German board-certified Family Medicine consultant with postgraduate training from Harvard Medical School, and is the principal owner of two private clinics in Germany.",
+      "Dr. Hamid Oladipupo Balogun, MD, is the CEO and Founder of Pearl Aesthetics & GP Medical Clinic. He is a consultant in Family Medicine and Aesthetics, German board-certified in Family Medicine (Facharzt für Allgemeinmedizin), and a physician executive, with postgraduate executive training in Life Sciences from Harvard Medical School.",
+      "In Germany he is the principal owner of two private family practices in Baden-Württemberg: the Internationale Hausarztpraxis Waldhof in Mannheim and a second practice in Eberbach. Both are admitted to Germany's statutory health insurance system, and the Mannheim practice cares for patients in more than eight languages.",
+      "He is a member of the Nigerian Medical Association, Germany. At Pearl he brings the same approach to Dubai: physician-led care, unhurried consultations, and a team that can speak with patients in their own language.",
     ],
-    expertise: ["Family Medicine", "General Practice", "Clinical Leadership"],
+    expertise: ["Family Medicine", "Aesthetic Medicine", "General Practice", "Preventive Care", "Clinical Leadership", "Healthcare Management"],
+    education: [
+      { title: "Executive Education, Life Sciences", place: "Harvard Medical School", years: "Postgraduate" },
+      { title: "Facharzt für Allgemeinmedizin (Family Medicine Specialist)", place: "Board certification, Germany", years: "Board-Certified" },
+    ],
   },
   {
     id: "priscilla-puspam",

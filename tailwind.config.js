@@ -110,6 +110,9 @@ export default {
         "headline-sm": ["Montserrat", "sans-serif"],
         "headline-md": ["Montserrat", "sans-serif"],
         display: ["Montserrat", "sans-serif"],
+        // Premium serif for the few words that should feel serious and
+        // expensive (the hero's "Medical Excellence", page-top accents).
+        "serif-display": ["Cormorant Garamond", "Georgia", "serif"],
         body: ["Montserrat", "sans-serif"],
       },
       fontSize: {

@@ -27,24 +27,32 @@ export async function getOrderById(orderId: string | undefined) {
   return data;
 }
 
-// Marks an order paid and decrements stock for its line items. Idempotent -
-// skips the write if the order is already paid. Returns the current (or
-// updated) order row either way.
-export async function markOrderPaid(orderId: string | undefined) {
-  const order = await getOrderById(orderId);
-  if (!order) return null;
-  if (order.payment_status === "paid") return order;
+// Marks an order paid and decrements stock for its line items. The
+// update is conditional (only rows not already paid), so when the success
+// page and the Stripe webhook race each other only one of them wins -
+// stock is decremented and the receipt is sent exactly once. Returns
+// { order, changed }: `changed` is true only for the call that flipped it.
+export async function markOrderPaid(orderId: string | undefined, extra: Record<string, unknown> = {}) {
+  if (!orderId) return { order: null, changed: false };
 
-  const { error: updateError } = await supabaseAdmin
+  const { data: updated, error: updateError } = await supabaseAdmin
     .from("orders")
-    .update({ payment_status: "paid" })
-    .eq("id", orderId);
+    .update({ payment_status: "paid", ...extra })
+    .eq("id", orderId)
+    .neq("payment_status", "paid")
+    .select("*");
 
   if (updateError) {
     console.error(`[supabaseAdmin] failed to mark order ${orderId} paid:`, updateError.message);
-    return order;
+    return { order: await getOrderById(orderId), changed: false };
   }
 
+  if (!updated || updated.length === 0) {
+    // Already paid (or doesn't exist) - nothing else to do.
+    return { order: await getOrderById(orderId), changed: false };
+  }
+
+  const order = updated[0];
   for (const item of order.items || []) {
     const { error: stockError } = await supabaseAdmin.rpc("decrement_stock", {
       p_id: item.id,
@@ -55,5 +63,25 @@ export async function markOrderPaid(orderId: string | undefined) {
     }
   }
 
-  return { ...order, payment_status: "paid" };
+  return { order, changed: true };
+}
+
+// Sets payment_status to anything other than "paid" (failed, expired,
+// refunded). Never downgrades a paid order to failed/expired - a late
+// "expired" event for a session that was already paid is just noise.
+export async function setOrderPaymentStatus(orderId: string | undefined, status: string) {
+  if (!orderId) return;
+  let query = supabaseAdmin.from("orders").update({ payment_status: status }).eq("id", orderId);
+  if (status !== "refunded") query = query.neq("payment_status", "paid");
+  const { error } = await query;
+  if (error) console.error(`[supabaseAdmin] failed to set order ${orderId} to ${status}:`, error.message);
+}
+
+// What Stripe actually charged (promo codes can change it) and which
+// session paid, saved onto the order alongside payment_status.
+export function paidExtras(session: { id: string; amount_total: number | null }) {
+  return {
+    stripe_session_id: session.id,
+    ...(session.amount_total != null ? { total: session.amount_total / 100 } : {}),
+  };
 }

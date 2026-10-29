@@ -62,7 +62,10 @@ export default function Footer() {
               <a className="font-body-md text-body-md opacity-80 hover:opacity-100 hover:text-secondary-container transition-all duration-300" href={BUSINESS.phones[1].href}>
                 {BUSINESS.phones[1].number}
               </a>
-              <span className="font-body-md text-body-md opacity-80">{BUSINESS.address.full}</span>
+              <a className="font-body-md text-body-md opacity-80 hover:opacity-100 hover:text-secondary-container transition-all duration-300 inline-flex items-start gap-1.5" href={BUSINESS.address.mapsUrl} target="_blank" rel="noreferrer">
+                <span className="material-symbols-outlined text-[18px] mt-0.5">location_on</span>
+                {BUSINESS.address.full}
+              </a>
               <Link className="font-body-md text-body-md opacity-80 hover:opacity-100 hover:text-secondary-container transition-all duration-300 inline-flex items-center gap-1 group" to="/contact">
                 Contact Us
                 <span className="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_forward</span>

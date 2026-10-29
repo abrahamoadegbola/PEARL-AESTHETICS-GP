@@ -17,7 +17,26 @@ const BUSINESS = {
     city: "Dubai",
     country: "United Arab Emirates",
     full: "Shop 3, Mayas Geneva Building, JVC, Dubai",
-    mapsQuery: "Mayas Geneva Building JVC Dubai",
+    mapsQuery: "Pearl Aesthetics and GP Medical Clinic Mayas Geneva Building JVC Dubai",
+    // The clinic's own Google Maps listing - every "location" mention on the
+    // site links here so visitors land on the real pin (with directions,
+    // photos and reviews), not a loose text search.
+    mapsUrl:
+      "https://www.google.com/maps/place/3633%2BMXC+Pearl+Aesthetics+and+GP+Medical+Clinic+L.L.C+-+Al+Barsha+South+Fourth+-+Jumeirah+Village+Circle+-+Dubai/data=!4m2!3m1!1s0x3e5f6d003711c989:0x76aaddfa09b42eb5",
+  },
+
+  google: {
+    // Place ID for the clinic's Google Business listing - used by the
+    // google-reviews Edge Function to pull live reviews from the Places API.
+    placeId: "ChIJickRNwBtXz4RtS60CfrdqnY",
+    reviewsUrl: "https://search.google.com/local/reviews?placeid=ChIJickRNwBtXz4RtS60CfrdqnY",
+    writeReviewUrl: "https://search.google.com/local/writereview?placeid=ChIJickRNwBtXz4RtS60CfrdqnY",
+    rating: 5.0,
+  },
+
+  instagram: {
+    handle: "pearl_medicals",
+    url: "https://www.instagram.com/pearl_medicals/",
   },
 
   phones: [
@@ -69,11 +88,39 @@ const BUSINESS = {
     },
   ],
 
-  // Real reviews already published on the clinic's own live site.
+  // Real Google reviews, copied verbatim from the clinic's Google Business
+  // listing. This is the fallback set - when the google-reviews Edge
+  // Function is configured (GOOGLE_PLACES_API_KEY), the site shows the
+  // live reviews from Google instead.
   testimonials: [
-    { quote: "The most professional clinic I have visited in Dubai.", name: "Aisha M.", source: "Verified Google Review" },
-    { quote: "From consultation to treatment, everything felt premium yet personal.", name: "Layla K.", source: "Verified Google Review" },
-    { quote: "Multilingual, discreet and genuinely caring.", name: "Sara H.", source: "Verified Google Review" },
+    {
+      quote:
+        "Thank you Dr. Priscilla for your kind and compassionate care. I have known her since 2024 — always ready to go the extra mile to ensure a good diagnosis and treatment… I would tell anyone visiting or living in the UAE to visit and experience this excellent medical care. It's a special gift!!!",
+      name: "Sonia",
+      source: "Google Review",
+      rating: 5,
+    },
+    {
+      quote:
+        "Thank you to Dr. Priscilla for outstanding care. Your professionalism, empathy, and clear guidance made a real difference in my experience. Highly appreciative of your dedication.",
+      name: "Joseph Mwinuka",
+      source: "Google Review",
+      rating: 5,
+    },
+    {
+      quote:
+        "The service was very professional. Dr. Wafa's consultation and guidance was very good, and Dr. Shaima managed my session very professionally. I will definitely recommend this place.",
+      name: "Shahwar Zaidi",
+      source: "Google Review",
+      rating: 5,
+    },
+    {
+      quote:
+        "The best clinic ever. Most importantly, the GP here, Dr. Priscilla, and the dermatologist are very, very genuine and don't over-prescribe medication. The best. I am coming back soon.",
+      name: "Pooja Wadhwa",
+      source: "Google Review",
+      rating: 5,
+    },
   ],
 
   medicalDisclaimer: "Aesthetic and medical treatments carry individual risks.",

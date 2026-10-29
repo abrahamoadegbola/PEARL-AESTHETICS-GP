@@ -3,6 +3,7 @@ import useDbCollection from "../hooks/useDbCollection";
 import { getActiveTreatments } from "../lib/db";
 import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
 import PageHero from "../components/PageHero";
+import { TreatmentArch } from "../components/HeroVisuals";
 import CTABand from "../components/CTABand";
 import Reveal from "../components/motion/Reveal";
 
@@ -19,16 +20,23 @@ export default function Treatments() {
   return (
     <>
       <PageHero
+        tone="surface"
+        surface="forest"
         eyebrow="Treatments"
-        title="Refined enhancements for timeless elegance"
-        lede="A curated menu of clinical treatments designed to subtly perfect and rejuvenate — medical precision with an eye for natural balance."
+        title={
+          <>
+            Refined enhancements for <span className="font-serif-display italic font-medium">timeless</span> elegance
+          </>
+        }
+        lede="Aesthetics, longevity medicine and wellness under one roof. Evidence-based treatments designed to subtly perfect, restore and keep you at your best."
+        visual={<TreatmentArch />}
       />
 
       <div className="max-w-container-max mx-auto px-gutter">
         <SupabaseSetupNotice />
       </div>
 
-      <section className="max-w-container-max mx-auto px-gutter pb-section-padding-mobile md:pb-section-padding-desktop">
+      <section className="max-w-container-max mx-auto px-gutter pt-16 md:pt-24 pb-section-padding-mobile md:pb-section-padding-desktop">
         {loading && (
           <p className="font-body-md text-body-md text-on-surface-variant py-16">Loading treatments…</p>
         )}

@@ -14,9 +14,38 @@ import { useDeclareDarkHero } from "../context/DarkHeroContext";
 //             functional pages (menu, booking, cart) where a photo would just
 //             be decoration standing between the visitor and the task.
 //
+// - "surface" - a coloured page top with one visual beside the copy (see
+//             SURFACES). Used where a page deserves its own personality
+//             (Treatments, Doctors, Results) without a full-bleed photo.
+//
 // Everything else - the eyebrow rule, the title scale, the lede width, the
 // vertical rhythm - is identical across both, which is what actually makes the
 // pages feel like one site.
+// Colour worlds for tone="surface". `dark` ones run under the header like a
+// photo hero does; light ones sit below the solid header.
+const SURFACES = {
+  forest: {
+    dark: true,
+    className: "bg-primary text-on-primary",
+    glow: "radial-gradient(ellipse 60% 70% at 85% 30%, rgba(254,214,91,0.20), transparent 70%)",
+  },
+  champagne: {
+    dark: false,
+    className: "bg-[#f1e7d2] text-primary",
+    glow: "radial-gradient(ellipse 55% 80% at 90% 20%, rgba(255,255,255,0.75), transparent 70%)",
+  },
+  blush: {
+    dark: false,
+    className: "bg-[#f2e2da] text-primary",
+    glow: "radial-gradient(ellipse 55% 80% at 88% 25%, rgba(254,214,91,0.30), transparent 70%), radial-gradient(ellipse 40% 60% at 10% 100%, rgba(255,255,255,0.6), transparent 70%)",
+  },
+  sage: {
+    dark: false,
+    className: "bg-[#d9e9e1] text-primary",
+    glow: "radial-gradient(ellipse 55% 80% at 85% 25%, rgba(254,214,91,0.28), transparent 70%)",
+  },
+};
+
 export default function PageHero({
   eyebrow,
   title,
@@ -28,10 +57,14 @@ export default function PageHero({
   actions,
   breadcrumb,
   align = "left",
+  surface = "forest",
+  visual,
   children,
 }) {
   const reduceMotion = useReducedMotion();
-  const dark = tone === "dark";
+  const coloured = tone === "surface" ? SURFACES[surface] : null;
+  const photo = tone === "dark";
+  const dark = photo || Boolean(coloured?.dark);
   const centred = align === "center";
 
   // A dark hero runs under the header rather than below it, which is what
@@ -41,12 +74,20 @@ export default function PageHero({
   return (
     <section
       className={`relative isolate overflow-hidden ${
-        dark
+        coloured
+          ? `${coloured.className} ${
+              "-mt-[88px] md:-mt-[104px] pt-[136px] md:pt-[168px]"
+            } pb-14 md:pb-20`
+          : photo
           ? "-mt-[88px] md:-mt-[104px] min-h-[75vh] md:min-h-[85vh] flex items-end text-on-primary bg-primary"
           : "bg-background text-primary pt-16 pb-14 md:pt-28 md:pb-20"
       }`}
     >
-      {dark && image && (
+      {coloured && (
+        <div className="absolute inset-0 -z-10 pointer-events-none" style={{ background: coloured.glow }} aria-hidden="true" />
+      )}
+
+      {photo && image && (
         <motion.div
           className="absolute inset-0 -z-10"
           initial={reduceMotion ? false : { scale: 1.08 }}
@@ -61,7 +102,7 @@ export default function PageHero({
       {/* Light-tone pages have no photo to carry the eye, so a faint,
           slowly-morphing blob sits behind the copy instead - just enough
           texture that the page doesn't open on a flat block of white. */}
-      {!dark && (
+      {!dark && !coloured && (
         <div
           className="absolute -top-24 -right-24 w-[28rem] h-[28rem] opacity-[0.06] blur-3xl pointer-events-none -z-10"
           aria-hidden="true"
@@ -72,9 +113,10 @@ export default function PageHero({
 
       <div
         className={`relative z-10 w-full max-w-container-max mx-auto px-gutter ${
-          dark ? "pt-[136px] pb-16 md:pt-[176px] md:pb-24" : ""
-        } ${centred ? "text-center" : ""}`}
+          photo ? "pt-[136px] pb-16 md:pt-[176px] md:pb-24" : ""
+        } ${centred ? "text-center" : ""} ${visual ? "grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center" : ""}`}
       >
+        <div className={visual ? "lg:col-span-7" : ""}>
         {breadcrumb && <div className="mb-8">{breadcrumb}</div>}
 
         {eyebrow && (
@@ -82,7 +124,7 @@ export default function PageHero({
             <span
               className={`font-label-caps text-label-caps uppercase tracking-[0.3em] mb-6 flex items-center gap-3 ${
                 centred ? "justify-center" : ""
-              } ${dark ? "text-secondary-container" : "text-primary"}`}
+              } ${dark ? "text-secondary-container" : coloured ? "text-primary/80" : "text-primary"}`}
             >
               <span className={`w-10 h-px ${dark ? "bg-secondary-container/60" : "bg-primary/30"}`} />
               {eyebrow}
@@ -105,7 +147,7 @@ export default function PageHero({
           <Reveal delay={0.45}>
             <p
               className={`font-body-lg text-body-lg mt-7 max-w-2xl ${centred ? "mx-auto" : ""} ${
-                dark ? "text-on-primary/80" : "text-on-surface-variant"
+                dark ? "text-on-primary/80" : coloured ? "text-primary/75" : "text-on-surface-variant"
               }`}
             >
               {lede}
@@ -124,6 +166,13 @@ export default function PageHero({
         {children && (
           <Reveal delay={0.68}>
             <div className="mt-12">{children}</div>
+          </Reveal>
+        )}
+        </div>
+
+        {visual && (
+          <Reveal delay={0.3} as="div" className="lg:col-span-5">
+            {visual}
           </Reveal>
         )}
       </div>

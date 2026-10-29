@@ -8,6 +8,7 @@ import { createCheckoutSession } from "../lib/api";
 import { isStripeConfigured } from "../lib/stripe";
 import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
 import Reveal from "../components/motion/Reveal";
+import Field from "../components/form/Field";
 
 const TAX_RATE = 0.05; // 5% VAT
 const FREE_SHIPPING_THRESHOLD = 500;
@@ -83,11 +84,7 @@ export default function CartCheckout() {
     setIsRedirecting(true);
     try {
       const record = await addOrder(buildOrderPayload("stripe"));
-      const { url } = await createCheckoutSession({
-        orderId: record.id,
-        items: record.items,
-        customerEmail: form.email,
-      });
+      const { url } = await createCheckoutSession({ orderId: record.id });
       if (!url) throw new Error("Stripe did not return a checkout URL.");
       window.location.href = url;
     } catch (err) {
@@ -260,74 +257,33 @@ export default function CartCheckout() {
               </div>
             </section>
 
-            <section>
-              <h2 className="font-headline-sm text-headline-sm text-primary border-b border-outline-variant pb-4 mb-6">
-                Shipping Details
-              </h2>
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="relative">
-                    <input
-                      className="w-full bg-transparent border-0 border-b border-outline text-primary font-body-md text-body-md px-0 py-2 focus:ring-0 focus:border-primary transition-colors"
-                      id="firstName"
-                      placeholder="First Name"
-                      type="text"
-                      required
-                      value={form.firstName}
-                      onChange={handleChange}
-                    />
-                  </div>
-                  <div className="relative">
-                    <input
-                      className="w-full bg-transparent border-0 border-b border-outline text-primary font-body-md text-body-md px-0 py-2 focus:ring-0 focus:border-primary transition-colors"
-                      id="lastName"
-                      placeholder="Last Name"
-                      type="text"
-                      value={form.lastName}
-                      onChange={handleChange}
-                    />
-                  </div>
-                </div>
-                <div className="relative">
-                  <input
-                    className="w-full bg-transparent border-0 border-b border-outline text-primary font-body-md text-body-md px-0 py-2 focus:ring-0 focus:border-primary transition-colors"
-                    id="email"
-                    placeholder="Email Address"
-                    type="email"
-                    required
-                    value={form.email}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="relative">
-                  <input
-                    className="w-full bg-transparent border-0 border-b border-outline text-primary font-body-md text-body-md px-0 py-2 focus:ring-0 focus:border-primary transition-colors"
-                    id="phone"
-                    placeholder="Phone Number"
-                    type="tel"
-                    required
-                    value={form.phone}
-                    onChange={handleChange}
-                  />
-                </div>
-                <div className="relative">
-                  <input
-                    className="w-full bg-transparent border-0 border-b border-outline text-primary font-body-md text-body-md px-0 py-2 focus:ring-0 focus:border-primary transition-colors"
-                    id="address"
-                    placeholder="Shipping Address"
-                    type="text"
-                    required
-                    value={form.address}
-                    onChange={handleChange}
-                  />
-                </div>
+            <section className="rounded-2xl bg-surface-container-lowest border border-outline-variant/40 p-6 md:p-10 shadow-[0_12px_40px_-16px_rgba(14,58,48,0.12)]">
+              <h2 className="font-headline-sm text-headline-sm text-primary mb-1">Delivery details</h2>
+              <p className="font-body-md text-body-md text-on-surface-variant mb-7">
+                We deliver across the UAE, free on orders over AED {FREE_SHIPPING_THRESHOLD}.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <Field id="firstName" label="First name" icon="person" required autoComplete="given-name" value={form.firstName} onChange={handleChange} />
+                <Field id="lastName" label="Last name" optional autoComplete="family-name" value={form.lastName} onChange={handleChange} />
+                <Field id="email" label="Email" icon="mail" type="email" required autoComplete="email" value={form.email} onChange={handleChange} />
+                <Field id="phone" label="Phone / WhatsApp" icon="call" type="tel" required autoComplete="tel" value={form.phone} onChange={handleChange} />
+                <Field
+                  id="address"
+                  label="Delivery address (building, street, area, emirate)"
+                  icon="home_pin"
+                  required
+                  autoComplete="street-address"
+                  value={form.address}
+                  onChange={handleChange}
+                  className="md:col-span-2"
+                />
               </div>
             </section>
           </div>
 
           <div className="lg:col-span-5 xl:col-span-4 mt-12 lg:mt-0">
-            <div className="bg-surface-container/40 rounded-xl p-8 sticky top-32 border border-surface-dim backdrop-blur-sm">
-              <h2 className="font-headline-sm text-headline-sm text-primary mb-6">Order Summary</h2>
+            <div className="sticky top-32 rounded-2xl bg-surface-container-lowest border border-outline-variant/40 p-8 shadow-[0_20px_60px_-24px_rgba(14,58,48,0.25)]">
+              <h2 className="font-serif-display text-3xl font-medium text-primary mb-6">Order summary</h2>
               <div className="space-y-4 mb-6 font-body-md text-body-md">
                 <div className="flex justify-between text-on-surface-variant">
                   <span>Subtotal ({items.reduce((n, i) => n + i.qty, 0)} items)</span>
@@ -352,17 +308,17 @@ export default function CartCheckout() {
                 type="button"
                 onClick={handleStripeCheckout}
                 disabled={!isFormValid || isRedirecting}
-                className="w-full bg-secondary-container text-on-secondary-container hover:bg-[#ebc44d] font-body-md text-body-md font-medium py-4 rounded-full transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] shadow-[0_8px_32px_-8px_rgba(254,214,91,0.3)] mb-3 flex justify-center items-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:active:scale-100"
+                className="w-full bg-primary text-on-primary hover:bg-primary-container font-label-caps text-label-caps uppercase tracking-widest py-4 rounded-full transition-all duration-300 active:scale-[0.98] shadow-lg shadow-primary/25 mb-3 flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
               >
-                {isRedirecting ? "Redirecting to Stripe…" : "Pay with Card"}
-                {!isRedirecting && <span className="material-symbols-outlined ml-2 text-[20px]">arrow_forward</span>}
+                {!isRedirecting && <span className="material-symbols-outlined text-[18px]">lock</span>}
+                {isRedirecting ? "Redirecting to secure checkout…" : `Pay AED ${total} securely`}
               </button>
 
               <button
                 type="button"
                 onClick={handleWhatsAppOrder}
                 disabled={!isFormValid || placingOrder}
-                className="w-full border border-primary text-primary hover:bg-surface-container-low font-body-md text-body-md font-medium py-4 rounded-full transition-all mb-4 flex justify-center items-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                className="w-full border border-outline-variant text-primary hover:border-primary hover:bg-surface-container-low font-label-caps text-label-caps uppercase tracking-widest py-4 rounded-full transition-all mb-4 flex justify-center items-center gap-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
               >
                 <span className="material-symbols-outlined text-[20px]">chat</span>
                 {placingOrder ? "Placing Order…" : "Place Order via WhatsApp"}
@@ -378,19 +334,18 @@ export default function CartCheckout() {
               )}
 
               <div className="flex flex-col items-center border-t border-outline-variant/50 pt-6">
-                <p className="font-label-caps text-label-caps text-outline mb-4">
-                  Secure card payment via Stripe, or arrange bank transfer on WhatsApp
+                <p className="font-body-md text-xs text-on-surface-variant text-center mb-4">
+                  Secure payment by Stripe, or arrange a bank transfer on WhatsApp
                 </p>
-                <div className="flex space-x-4 text-outline-variant">
-                  <span className="material-symbols-outlined text-[32px]" style={{ fontVariationSettings: "'wght' 200" }}>
-                    lock
-                  </span>
-                  <span className="material-symbols-outlined text-[32px]" style={{ fontVariationSettings: "'wght' 200" }}>
-                    verified_user
-                  </span>
-                  <span className="material-symbols-outlined text-[32px]" style={{ fontVariationSettings: "'wght' 200" }}>
-                    credit_card
-                  </span>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {["Visa", "Mastercard", "Apple Pay", "Google Pay", "Link"].map((m) => (
+                    <span
+                      key={m}
+                      className="rounded-md border border-outline-variant/60 bg-surface-container-low px-2.5 py-1 font-label-caps text-[10px] uppercase tracking-wider text-on-surface-variant"
+                    >
+                      {m}
+                    </span>
+                  ))}
                 </div>
               </div>
             </div>

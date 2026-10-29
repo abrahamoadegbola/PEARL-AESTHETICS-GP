@@ -4,9 +4,11 @@ import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } fr
 import BUSINESS from "../data/business";
 import DOCTORS from "../data/doctors";
 import SERVICE_CATEGORIES from "../data/categories";
-import RESULTS from "../data/results";
 import ARTICLES from "../data/insights";
 import useDbCollection from "../hooks/useDbCollection";
+import useInstagramFeed, { facilityPosts, resultPosts } from "../hooks/useInstagramFeed";
+import useGoogleReviews from "../hooks/useGoogleReviews";
+import InstagramCard, { ReelLightbox, isPlayable } from "../components/InstagramCard";
 import { getActiveTreatments } from "../lib/db";
 import SupabaseSetupNotice from "../components/SupabaseSetupNotice";
 import Reveal from "../components/motion/Reveal";
@@ -44,7 +46,7 @@ const JOURNEY_STEPS = [
   {
     icon: "spa",
     title: "Your Treatment",
-    body: "Delivered by German board-certified physicians, in a boutique setting.",
+    body: "Delivered by German board-certified physicians, in a premium setting.",
   },
   {
     icon: "favorite",
@@ -83,7 +85,19 @@ const FAQS = [
   },
   {
     q: "Where is the clinic, and how do I get there?",
-    a: `${BUSINESS.address.full}. It's easily reached from JLT, Motor City, Al Barsha, TECOM and Al Quoz.`,
+    a: (
+      <>
+        {BUSINESS.address.full}. It's easily reached from JLT, Motor City, Al Barsha, TECOM and Al Quoz.{" "}
+        <a
+          href={BUSINESS.address.mapsUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="text-primary underline underline-offset-4 hover:text-primary-container"
+        >
+          Open in Google Maps
+        </a>
+      </>
+    ),
   },
   {
     q: "What are your opening hours?",
@@ -115,17 +129,18 @@ function TestimonialCarousel({ testimonials }) {
       </span>
       <motion.div key={index} initial={reduceMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}>
         <div className="flex justify-center text-secondary mb-6">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {Array.from({ length: t.rating || 5 }).map((_, i) => (
             <span key={i} className="material-symbols-outlined fill text-xl">star</span>
           ))}
         </div>
-        <p className="font-display-lg text-headline-md md:text-display-lg text-on-surface leading-tight mb-8">"{t.quote}"</p>
+        <p className="font-display-lg text-headline-sm md:text-headline-md text-on-surface leading-snug mb-8">"{t.quote}"</p>
         <div className="flex items-center justify-center gap-3">
           <span className="w-10 h-10 rounded-full bg-primary/15 text-primary-container flex items-center justify-center font-label-caps text-label-caps font-bold flex-shrink-0">
             {t.name.charAt(0)}
           </span>
           <p className="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest text-left">
             {t.name} · {t.source}
+            {t.time ? ` · ${t.time}` : ""}
           </p>
         </div>
       </motion.div>
@@ -142,6 +157,51 @@ function TestimonialCarousel({ testimonials }) {
         </div>
       )}
     </div>
+  );
+}
+
+// A Facilities photo. Most come from reels, so tapping one plays the reel
+// right here instead of sending the visitor off to Instagram.
+function FacilityTile({ post, playlist, info, large }) {
+  const [open, setOpen] = useState(false);
+  const playable = isPlayable(post);
+  const className = "group relative block w-full h-full min-h-[18rem] rounded-2xl overflow-hidden bg-surface-container text-left";
+  const content = (
+    <>
+      <img
+        src={post.image}
+        alt={info.title}
+        style={info.objectPosition ? { objectPosition: info.objectPosition } : undefined}
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
+        loading="lazy"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
+      {playable && (
+        <span className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white transition-transform group-hover:scale-110">
+          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+        </span>
+      )}
+      <div className="absolute inset-x-0 bottom-0 p-6 md:p-7 text-white">
+        <h3 className={`font-headline-sm mb-1.5 ${large ? "text-headline-md" : "text-headline-sm"}`}>{info.title}</h3>
+        <p className="font-body-md text-sm text-white/80 max-w-md">{info.description}</p>
+      </div>
+    </>
+  );
+
+  if (!playable) {
+    return (
+      <a href={post.permalink} target="_blank" rel="noreferrer" className={className}>
+        {content}
+      </a>
+    );
+  }
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className={className} aria-label={`Play video: ${info.title}`}>
+        {content}
+      </button>
+      <ReelLightbox post={post} playlist={playlist} open={open} onClose={() => setOpen(false)} />
+    </>
   );
 }
 
@@ -195,8 +255,15 @@ export default function Home() {
   const heroContentOpacity = useTransform(heroScroll, [0, 0.7], [1, 0]);
   const featured = treatments.find((t) => t.featured) || treatments[0];
   const rest = treatments.filter((t) => t.id !== featured?.id);
-  const featuredTestimonial = BUSINESS.testimonials[0];
-  const previewResults = RESULTS.slice(0, 3);
+  const { posts: instagramPosts } = useInstagramFeed();
+  const reviews = useGoogleReviews();
+  const featuredTestimonial = reviews.reviews[0];
+  // Before/afters first, then the latest reels to fill the row.
+  const previewResults = [
+    ...resultPosts(instagramPosts),
+    ...instagramPosts.filter((p) => p.type === "reel" && !p.tags?.includes("result")),
+  ].slice(0, 4);
+  const facilities = facilityPosts(instagramPosts).slice(0, 4);
   const founder = DOCTORS.find((d) => d.id === "hamid-balogun") || DOCTORS[0];
   const restOfTeam = DOCTORS.filter((d) => d.id !== founder?.id);
   const previewArticles = ARTICLES.slice(0, 3);
@@ -247,24 +314,29 @@ export default function Home() {
           style={reduceMotion ? undefined : { y: heroContentY, opacity: heroContentOpacity }}
         >
           <Reveal delay={0.05}>
-            <span className="inline-flex items-center gap-2.5 mb-8 px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 font-label-caps text-label-caps uppercase tracking-[0.25em]">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary-fixed-dim" />
+            <a
+              href={BUSINESS.address.mapsUrl}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`${BUSINESS.name} on Google Maps`}
+              className="inline-flex items-center gap-2.5 mb-8 px-5 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 font-label-caps text-label-caps uppercase tracking-[0.25em] hover:bg-white/20 transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px] text-primary-fixed-dim">location_on</span>
               {BUSINESS.address.line2} · {BUSINESS.address.city}
-            </span>
+              <span className="material-symbols-outlined text-[14px] opacity-70">arrow_outward</span>
+            </a>
           </Reveal>
 
           <h1 className="mb-8">
             {HERO_LINES.map((line, i) => (
               <Reveal key={line.text} delay={0.15 + i * 0.12} as="div">
                 <span
-                  className={`block font-display-lg ${i === 1 ? "text-primary-fixed-dim" : ""}`}
-                  style={{
-                    fontWeight: line.weight,
-                    fontSize: i === 1 ? "clamp(2.75rem, 6.5vw, 5rem)" : "clamp(1.75rem, 4vw, 3rem)",
-                    lineHeight: 1.08,
-                    letterSpacing: "-0.02em",
-                    textShadow: i === 1 ? "0 2px 40px rgba(254,214,91,0.35)" : undefined,
-                  }}
+                  className={`block ${i === 1 ? "font-serif-display text-secondary-fixed" : "font-display-lg"}`}
+                  style={
+                    i === 1
+                      ? { fontWeight: 500, fontSize: "clamp(3.25rem, 7.5vw, 6rem)", lineHeight: 1, letterSpacing: "0.005em" }
+                      : { fontWeight: line.weight, fontSize: "clamp(1.75rem, 4vw, 3rem)", lineHeight: 1.08, letterSpacing: "-0.02em" }
+                  }
                 >
                   {line.text}
                 </span>
@@ -512,40 +584,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ---------- RESULTS PREVIEW ---------- */}
+      {/* ---------- RESULTS PREVIEW - straight from the clinic's Instagram,
+          so new before/afters and reels show up without a code change. ---------- */}
       {previewResults.length > 0 && (
         <section className="px-gutter py-section-padding-mobile md:py-section-padding-desktop bg-surface-container-low">
           <div className="max-w-container-max mx-auto">
-            <SectionHeader eyebrow="Real Outcomes" title="Patient Results" linkTo="/results" linkLabel="View Full Gallery" />
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
-              {previewResults.map((result, i) => (
-                <Reveal
-                  key={result.id}
-                  delay={0.08 * i}
-                  className={i === 0 ? "md:col-span-6" : "md:col-span-3"}
-                  as="div"
-                >
-                  <div className="group relative rounded-2xl overflow-hidden aspect-square">
-                    <img
-                      src={result.image}
-                      alt={`${result.category} result — ${result.title}`}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-[1200ms] ease-out group-hover:scale-105"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-6 text-white">
-                      <p className="font-label-caps text-label-caps text-white/80 uppercase tracking-widest mb-1">
-                        {result.category}
-                      </p>
-                      <h3 className="font-headline-sm text-headline-sm">{result.title}</h3>
-                    </div>
-                  </div>
+            <SectionHeader eyebrow="Real Outcomes" title="Patient Results & Videos" linkTo="/results" linkLabel="View Full Gallery" />
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-gutter">
+              {previewResults.map((post, i) => (
+                <Reveal key={post.id} delay={0.08 * i} as="div">
+                  <InstagramCard post={post} playlist={previewResults} />
                 </Reveal>
               ))}
             </div>
             <p className="font-body-md text-sm text-on-surface-variant mt-8 max-w-2xl">
-              Individual results vary. Images are representative of typical outcomes and are shown with
-              patient consent.
+              Individual results vary. Images are of real Pearl patients, shared with their consent.
             </p>
           </div>
         </section>
@@ -639,6 +692,56 @@ export default function Home() {
         </section>
       )}
 
+      {/* ---------- FACILITIES - real rooms, from the clinic's own reels.
+          The entrance runs large; the rooms sit beside it. ---------- */}
+      {facilities.length > 0 && (
+        <section className="px-gutter py-section-padding-mobile md:py-section-padding-desktop bg-surface-container-lowest" id="facilities">
+          <div className="max-w-container-max mx-auto">
+            <SectionHeader
+              eyebrow="Our Facilities"
+              title="Inside the Clinic"
+              lede="A premium, DHA-licensed clinic in the heart of JVC, with private treatment suites, GP consultation rooms and a calm patient lounge."
+              linkTo="/results"
+              linkLabel="See the gallery"
+            />
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+              {facilities.map((post, i) => {
+                const info = post.facility || { title: post.title, description: post.caption };
+                return (
+                  <Reveal
+                    key={post.id}
+                    delay={0.07 * i}
+                    as="div"
+                    className={i === 0 ? "md:col-span-6 md:row-span-2" : "md:col-span-6 lg:col-span-3"}
+                  >
+                    <FacilityTile post={post} playlist={facilities} info={info} large={i === 0} />
+                  </Reveal>
+                );
+              })}
+              <Reveal delay={0.3} as="div" className="md:col-span-6 lg:col-span-3">
+                <a
+                  href={BUSINESS.address.mapsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex lg:flex-col lg:items-start h-full min-h-[10rem] lg:min-h-[18rem] items-center justify-between gap-6 rounded-2xl bg-primary text-on-primary p-7 md:p-8 hover:bg-primary-container transition-colors"
+                >
+                  <div>
+                    <p className="font-label-caps text-label-caps uppercase tracking-[0.25em] text-secondary-container mb-2">Visit Us</p>
+                    <p className="font-headline-sm text-headline-sm mb-1">{BUSINESS.address.line1}</p>
+                    <p className="font-body-md text-body-md opacity-80">
+                      {BUSINESS.address.line2}, {BUSINESS.address.city} · {BUSINESS.hours.display}
+                    </p>
+                  </div>
+                  <span className="flex-shrink-0 w-12 h-12 rounded-full bg-on-primary/10 flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                    <span className="material-symbols-outlined">directions</span>
+                  </span>
+                </a>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ---------- WHY CHOOSE US ---------- */}
       <section className="px-gutter py-section-padding-mobile md:py-section-padding-desktop bg-surface-container-low">
         <div className="max-w-container-max mx-auto">
@@ -662,9 +765,38 @@ export default function Home() {
       {/* ---------- REVIEWS ---------- */}
       <section className="relative py-section-padding-mobile md:py-section-padding-desktop px-gutter overflow-hidden">
         <div className="relative max-w-container-max mx-auto">
-          <SectionHeader eyebrow="Patient Stories" title="Loved by Our Patients" align="center" />
+          <SectionHeader eyebrow="Google Reviews" title="Loved by Our Patients" align="center" />
+          <Reveal delay={0.05} as="div" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 mb-12 -mt-6">
+            <span className="inline-flex items-center gap-2 font-body-md text-body-md text-on-surface">
+              <span className="font-display-lg text-2xl text-primary">{Number(reviews.rating).toFixed(1)}</span>
+              <span className="flex text-secondary">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <span key={i} className="material-symbols-outlined fill text-[18px]">star</span>
+                ))}
+              </span>
+              <span className="text-on-surface-variant">
+                on Google{reviews.userRatingCount ? ` · ${reviews.userRatingCount} reviews` : ""}
+              </span>
+            </span>
+            <a
+              href={BUSINESS.google.reviewsUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="font-label-caps text-label-caps uppercase tracking-widest text-primary underline underline-offset-4 hover:text-primary-container"
+            >
+              Read all reviews
+            </a>
+            <a
+              href={BUSINESS.google.writeReviewUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="font-label-caps text-label-caps uppercase tracking-widest text-on-surface-variant underline underline-offset-4 hover:text-primary"
+            >
+              Leave a review
+            </a>
+          </Reveal>
           <Reveal delay={0.1} as="div">
-            <TestimonialCarousel testimonials={BUSINESS.testimonials} />
+            <TestimonialCarousel testimonials={reviews.reviews} />
           </Reveal>
         </div>
       </section>
